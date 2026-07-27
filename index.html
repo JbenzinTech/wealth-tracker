@@ -1553,9 +1553,12 @@ async function setSyncCode(){
   const val=document.getElementById('sync-code-input').value.trim();
   if(!val){alert('Enter a sync code.');return;}
   if(val.length<8 && !confirm('Short codes are easier to guess by others. Use it anyway?')) return;
+  const prevCode=localStorage.getItem('pit_sync_code')||'';
   localStorage.setItem('pit_sync_code', val);
   syncCode=val;
   syncDocId=await sha256Hex(val);
+  // Treat setting a new/changed code as a fresh device relationship — first sync always adopts the cloud copy
+  if(val!==prevCode) localStorage.removeItem('pit_sync_initialized');
   renderSyncPanel();
   renderSyncStatus('Connecting…');
   await syncNow();
@@ -1564,6 +1567,7 @@ async function setSyncCode(){
 function disconnectSync(){
   if(!confirm("Disconnect this device from cloud sync? Your local data stays intact — this device just stops syncing until you re-enter the code.")) return;
   localStorage.removeItem('pit_sync_code');
+  localStorage.removeItem('pit_sync_initialized');
   syncCode=''; syncDocId=null;
   document.getElementById('sync-code-input').value='';
   renderSyncPanel();
@@ -1585,6 +1589,7 @@ async function pushToCloud(){
     const payload={holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,updatedAt};
     await fbDb.collection('syncData').doc(syncDocId).set(payload);
     localStorage.setItem('pit_local_version', String(updatedAt));
+    localStorage.setItem('pit_sync_initialized','true');
     renderSyncStatus('✓ Pushed to cloud — '+new Date().toLocaleTimeString());
   }catch(e){
     renderSyncStatus('✕ Push failed — '+e.message, true);
@@ -1612,6 +1617,7 @@ async function pullFromCloud(){
     save(); // persists pulled data to localStorage (auto-push suppressed for this save)
     suppressAutoPush=false;
     localStorage.setItem('pit_local_version', String(d.updatedAt||Date.now()));
+    localStorage.setItem('pit_sync_initialized','true');
     renderAll();
     renderSyncStatus('✓ Pulled from cloud — '+new Date().toLocaleTimeString());
   }catch(e){
@@ -1625,13 +1631,26 @@ async function syncNow(){
   try{
     await ensureSignedIn();
     const doc=await fbDb.collection('syncData').doc(syncDocId).get();
-    const localVersion=parseInt(localStorage.getItem('pit_local_version')||'0');
+    const initialized=localStorage.getItem('pit_sync_initialized')==='true';
+
     if(doc.exists){
+      if(!initialized){
+        // First time this device syncs this code — always adopt the cloud copy rather
+        // than comparing timestamps. A fresh device's default/sample data can look
+        // "newer" than real cloud data purely because it was just saved locally
+        // (e.g. an auto price refresh right after page load), which would otherwise
+        // wrongly win a naive timestamp comparison.
+        await pullFromCloud();
+        localStorage.setItem('pit_sync_initialized','true');
+        return;
+      }
       const cloudVersion=doc.data().updatedAt||0;
+      const localVersion=parseInt(localStorage.getItem('pit_local_version')||'0');
       if(cloudVersion>localVersion) await pullFromCloud();
       else await pushToCloud();
     } else {
       await pushToCloud();
+      localStorage.setItem('pit_sync_initialized','true');
     }
   }catch(e){
     renderSyncStatus('✕ Sync failed — '+e.message, true);
