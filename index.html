@@ -64,11 +64,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;f
 /* ── Save bar ── */
 .save-bar{background:var(--surface);border-top:.5px solid var(--border);padding:7px 16px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink3);position:sticky;bottom:0;z-index:10}
 
+/* ── Hamburger menu button (mobile only) ── */
+.hamburger-btn{display:none;flex-direction:column;justify-content:center;gap:4px;width:32px;height:32px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;position:absolute;top:16px;right:16px;padding:0}
+.hamburger-btn span{display:block;width:16px;height:2px;background:#fff;margin:0 auto;border-radius:1px}
+.sidebar-close-btn{display:none;background:none;border:none;color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;padding:6px 10px;align-self:flex-end}
+
+/* ── Mobile drawer overlay ── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199}
+.sidebar-overlay.open{display:block}
+
 @media(max-width:700px){
+  .hero{position:relative;padding:20px 60px 18px 20px}
+  .hamburger-btn{display:flex}
+  .sidebar-close-btn{display:block}
   .app-shell{flex-direction:column;height:auto}
-  .sidebar{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap;overflow-x:auto}
+  .sidebar{
+    position:fixed; top:0; left:0; height:100vh; width:260px; max-width:80vw;
+    z-index:200; transform:translateX(-100%); transition:transform .25s ease;
+    box-shadow:2px 0 16px rgba(0,0,0,.3); overflow-y:auto;
+  }
+  .sidebar.open{transform:translateX(0)}
   .sidebar-section{padding:6px 0}
-  .settings-submenu{position:absolute;z-index:50;background:#1a2636;min-width:160px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+  .settings-submenu{position:static;z-index:auto;background:rgba(0,0,0,.15);min-width:0;border-radius:0;box-shadow:none}
+  .main{width:100%}
 }
 
 /* ── Cards ── */
@@ -180,16 +198,25 @@ button:hover{background:var(--bg)}
 
 <!-- ── Hero Header ── -->
 <div class="hero">
+  <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
   <div class="hero-eyebrow">NGX · Personal Finance</div>
   <div class="hero-title">Investment Portfolio Tracker</div>
   <div class="hero-sub">v2.0 &nbsp;·&nbsp; Nigerian Exchange Group</div>
 </div>
 
+<!-- Mobile drawer overlay -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+
 <!-- ── App Shell: sidebar + main ── -->
 <div class="app-shell">
 
 <!-- Sidebar -->
-<nav class="sidebar">
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-section">
+    <button class="sidebar-close-btn" id="sidebar-close-btn" onclick="closeMobileMenu()" aria-label="Close menu">✕</button>
+  </div>
   <div class="sidebar-section">
     <div class="sidebar-label">Overview</div>
     <button class="nav-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
@@ -236,6 +263,11 @@ button:hover{background:var(--bg)}
     <button class="nav-btn" onclick="switchTab('retirement',this)">🏛️ Retirement/Pension</button>
     <button class="nav-btn" onclick="switchTab('liabilities',this)">💳 Liabilities</button>
   </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Cash Flow</div>
+    <button class="nav-btn" onclick="switchTab('cashflow',this)">💵 Income &amp; Expenses</button>
+    <button class="nav-btn" onclick="switchTab('budgeting',this)">📊 Budgeting</button>
+  </div>
   <hr class="sidebar-divider"/>
   <div class="sidebar-section">
     <div class="sidebar-label">Market</div>
@@ -258,6 +290,7 @@ button:hover{background:var(--bg)}
         <button onclick="switchTab('funds',this);closeSettings()">💹 Funds</button>
       </div>
       <button onclick="switchTab('fx',this);closeSettings()">💱 Currency &amp; FX</button>
+      <div class="settings-submenu-section" onclick="switchTab('categories',this);closeSettings()">🏷️ Categories</div>
       <div class="settings-submenu-section" onclick="switchTab('datastorage',this);closeSettings()">💾 Data Storage</div>
       <div class="settings-submenu-section" onclick="switchTab('cloudsync',this);closeSettings()">☁️ Cloud Sync</div>
     </div>
@@ -319,6 +352,27 @@ button:hover{background:var(--bg)}
     <div id="nw-hero-sub" style="font-size:12px;color:var(--ink3);margin-top:6px"></div>
   </div>
 
+  <!-- Milestone achieved notification bar -->
+  <div id="nwm-triggered-bar" style="display:none;margin-bottom:12px"></div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="card-title" style="margin-bottom:0" id="nwm-form-title">Add net worth milestone</div>
+      <div id="nwm-edit-badge" style="display:none;align-items:center;gap:6px">
+        <span class="tag tag-amber">✏️ Editing</span>
+        <button class="btn-sm" onclick="cancelEditMilestone()">✕ Cancel</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="f2"><label>Label</label><input id="nwm-label" type="text" placeholder="e.g. Debt-free, First ₦50M, Retirement target…"/></div>
+      <div class="f1"><label>Target net worth (₦)</label><input id="nwm-target" type="number" min="0" step="0.01" placeholder="0.00"/></div>
+      <div style="flex:0"><button class="btn-primary" id="nwm-submit-btn" onclick="saveMilestone()">Save ↗</button></div>
+    </div>
+    <div class="hint">Click any milestone below to edit it.</div>
+    <input type="hidden" id="nwm-edit-id"/>
+    <div id="nwm-list" style="margin-top:12px"></div>
+  </div>
+
   <div class="card">
     <div class="card-title">Assets vs Liabilities</div>
     <div class="metrics" id="nw-metrics"></div>
@@ -342,10 +396,31 @@ button:hover{background:var(--bg)}
 
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div class="card-title" style="margin-bottom:0">Net worth history</div>
-      <button class="btn-primary btn-sm" onclick="saveNetWorthSnapshot()">📸 Save today's snapshot</button>
+      <div class="card-title" style="margin-bottom:0" id="nw-snap-form-title">Add / edit snapshot</div>
+      <div id="nw-snap-edit-badge" style="display:none;align-items:center;gap:6px">
+        <span class="tag tag-amber">✏️ Editing</span>
+        <button class="btn-sm" onclick="cancelEditSnapshot()">✕ Cancel</button>
+      </div>
     </div>
-    <div class="hint" style="margin-bottom:10px">Save a snapshot periodically (e.g. monthly) to build a trend line. Saving again on the same date updates that day's snapshot rather than duplicating it.</div>
+    <div class="row">
+      <div class="f1"><label>Date</label><input id="nw-snap-date" type="date"/></div>
+      <div class="f1"><label>Total assets (₦)</label><input id="nw-snap-assets" type="number" min="0" step="0.01" placeholder="0.00" oninput="updateSnapNetWorthPreview()"/></div>
+      <div class="f1"><label>Total liabilities (₦)</label><input id="nw-snap-liabilities" type="number" min="0" step="0.01" placeholder="0.00" oninput="updateSnapNetWorthPreview()"/></div>
+      <div class="f1"><label>Net worth</label><input id="nw-snap-networth" type="text" disabled style="background:var(--bg);color:var(--ink3)"/></div>
+      <div style="flex:0;display:flex;gap:6px">
+        <button onclick="prefillTodaySnapshot()">📸 Use today's figures</button>
+        <button class="btn-primary" id="nw-snap-submit-btn" onclick="saveNetWorthSnapshot()">Save ↗</button>
+      </div>
+    </div>
+    <div class="hint">Saving on a date that already has a snapshot updates it instead of duplicating. Click any row below to edit — useful for correcting an entry or backfilling history you know but haven't recorded stock-by-stock.</div>
+    <input type="hidden" id="nw-snap-edit-id"/>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="card-title" style="margin-bottom:0">Net worth history</div>
+      <button onclick="exportNetWorthHistoryCSV()">📤 Export snapshots (CSV)</button>
+    </div>
     <div class="chart-wrap" style="margin-bottom:14px"><canvas id="chart-nw-history"></canvas></div>
     <div id="nw-history-table"></div>
   </div>
@@ -587,6 +662,92 @@ button:hover{background:var(--bg)}
   <div class="card">
     <div class="card-title">Liabilities register</div>
     <div id="liabilities-table"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ INCOME & EXPENSES ══════════════════════ -->
+<div id="panel-cashflow" class="panel">
+  <div class="card">
+    <div class="card-title">Cash flow summary</div>
+    <div class="metrics" id="cf-metrics"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="card-title" style="margin-bottom:0" id="cf-form-title">Add transaction</div>
+      <div id="cf-edit-badge" style="display:none;align-items:center;gap:6px">
+        <span class="tag tag-amber">✏️ Editing</span>
+        <button class="btn-sm" onclick="cancelEditCashflow()">✕ Cancel</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="f1"><label>Date</label><input id="cf-date" type="date"/></div>
+      <div class="f1"><label>Type</label>
+        <select id="cf-type" onchange="populateCFCategories()">
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+      </div>
+      <div class="f1"><label>Category</label><select id="cf-category"></select></div>
+      <div class="f1"><label>Amount</label><input id="cf-amount" type="number" min="0" step="0.01" placeholder="0.00"/></div>
+      <div class="f1"><label>Currency</label><select id="cf-currency"></select></div>
+      <div class="f2"><label>Note (optional)</label><input id="cf-note" type="text" placeholder="e.g. Monthly salary, groceries at Shoprite…"/></div>
+      <div style="flex:0"><button class="btn-primary" id="cf-submit-btn" onclick="saveCashflow()">Save ↗</button></div>
+    </div>
+    <div class="hint">Click any row in the register below to edit it.</div>
+    <input type="hidden" id="cf-edit-id"/>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="card-title" style="margin-bottom:0">Transaction register</div>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <div class="f1">
+        <select id="cf-filter-month" onchange="renderCashflow()">
+          <option value="">All months</option>
+        </select>
+      </div>
+      <div class="f1">
+        <select id="cf-filter-type" onchange="renderCashflow()">
+          <option value="">All types</option>
+          <option value="income">Income only</option>
+          <option value="expense">Expense only</option>
+        </select>
+      </div>
+    </div>
+    <div id="cf-table"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ BUDGETING ══════════════════════ -->
+<div id="panel-budgeting" class="panel">
+  <div class="card">
+    <div class="card-title">Budget vs actual — this month</div>
+    <div class="metrics" id="bud-metrics"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="card-title" style="margin-bottom:0" id="bud-form-title">Set category budget</div>
+      <div id="bud-edit-badge" style="display:none;align-items:center;gap:6px">
+        <span class="tag tag-amber">✏️ Editing</span>
+        <button class="btn-sm" onclick="cancelEditBudget()">✕ Cancel</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="f2"><label>Category</label><select id="bud-category"></select></div>
+      <div class="f1"><label>Monthly budget</label><input id="bud-amount" type="number" min="0" step="0.01" placeholder="0.00"/></div>
+      <div class="f1"><label>Currency</label><select id="bud-currency"></select></div>
+      <div style="flex:0"><button class="btn-primary" id="bud-submit-btn" onclick="saveBudget()">Save ↗</button></div>
+    </div>
+    <div class="hint">One budget per category. Setting a budget for a category that already has one updates it. Click any row below to edit.</div>
+    <input type="hidden" id="bud-edit-id"/>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Budgets — progress this month</div>
+    <div id="bud-table"></div>
   </div>
 </div>
 
@@ -1147,6 +1308,34 @@ button:hover{background:var(--bg)}
   </div>
 </div>
 
+<!-- ══════════════════════ CATEGORIES ══════════════════════ -->
+<div id="panel-categories" class="panel">
+  <div class="card">
+    <div class="card-title">🏷️ Income &amp; Expense categories</div>
+    <p style="font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+      Customise the category lists used by Income &amp; Expenses and Budgeting. Expense categories are also what appears when setting a budget.
+    </p>
+    <div class="row" style="align-items:flex-end">
+      <div class="f1"><label>List</label>
+        <select id="cat-type"><option value="income">Income</option><option value="expense">Expense</option></select>
+      </div>
+      <div class="f2"><label>New category name</label><input id="cat-name" type="text" placeholder="e.g. Freelance Income, Subscriptions…"/></div>
+      <div style="flex:0"><button class="btn-primary" onclick="addCategory()">Add ↗</button></div>
+      <div style="flex:0"><button onclick="resetCategoriesToDefault()">↺ Reset to defaults</button></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Income categories</div>
+      <div id="cat-income-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Expense categories</div>
+      <div id="cat-expense-list"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════ DATA STORAGE ══════════════════════ -->
 <div id="panel-datastorage" class="panel">
   <div class="card">
@@ -1216,6 +1405,10 @@ function migrateFromOldKey(){
     if(d.realEstate)                      migrated.realEstate=d.realEstate;
     if(d.retirementAccounts)              migrated.retirementAccounts=d.retirementAccounts;
     if(d.netWorthHistory)                 migrated.netWorthHistory=d.netWorthHistory;
+    if(d.netWorthMilestones)              migrated.netWorthMilestones=d.netWorthMilestones;
+    if(d.cashflowTxns)                    migrated.cashflowTxns=d.cashflowTxns;
+    if(d.budgets)                         migrated.budgets=d.budgets;
+    if(d.cfCategories)                    migrated.cfCategories=d.cfCategories;
     if(d.currencies)                      migrated.currencies=d.currencies;
     else if(d.fxRate)                     migrated.fxRate=d.fxRate; // legacy — migrated to currencies on load
     if(d.mfBalances)                      migrated.mfBalances=d.mfBalances;
@@ -1586,7 +1779,7 @@ async function pushToCloud(){
   try{
     await ensureSignedIn();
     const updatedAt=Date.now();
-    const payload={holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,updatedAt};
+    const payload={holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,netWorthMilestones,cashflowTxns,budgets,cfCategories:CF_CATEGORIES,updatedAt};
     await fbDb.collection('syncData').doc(syncDocId).set(payload);
     localStorage.setItem('pit_local_version', String(updatedAt));
     localStorage.setItem('pit_sync_initialized','true');
@@ -1613,6 +1806,9 @@ async function pullFromCloud(){
     liabilities=d.liabilities||[]; cashAccounts=d.cashAccounts||[];
     currencies=d.currencies||currencies; realEstate=d.realEstate||[];
     retirementAccounts=d.retirementAccounts||[]; netWorthHistory=d.netWorthHistory||[];
+    netWorthMilestones=d.netWorthMilestones||[];
+    cashflowTxns=d.cashflowTxns||[]; budgets=d.budgets||[];
+    if(d.cfCategories) CF_CATEGORIES=d.cfCategories;
     suppressAutoPush=true;
     save(); // persists pulled data to localStorage (auto-push suppressed for this save)
     suppressAutoPush=false;
@@ -1667,7 +1863,7 @@ function scheduleAutoPush(){
 
 function save(){
   try{
-    localStorage.setItem(LS,JSON.stringify({holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory}));
+    localStorage.setItem(LS,JSON.stringify({holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,netWorthMilestones,cashflowTxns,budgets,cfCategories:CF_CATEGORIES}));
     localStorage.setItem('pit_local_version', String(Date.now()));
     setStatus('Saved — '+new Date().toLocaleTimeString());
     scheduleAutoPush();
@@ -1696,6 +1892,10 @@ function load(){
       if(d.realEstate)                        realEstate=d.realEstate||[];
       if(d.retirementAccounts)                retirementAccounts=d.retirementAccounts||[];
       if(d.netWorthHistory)                   netWorthHistory=d.netWorthHistory||[];
+      if(d.netWorthMilestones)                netWorthMilestones=d.netWorthMilestones||[];
+      if(d.cashflowTxns)                      cashflowTxns=d.cashflowTxns||[];
+      if(d.budgets)                           budgets=d.budgets||[];
+      if(d.cfCategories)                      CF_CATEGORIES=d.cfCategories;
       if(d.currencies&&d.currencies.length)    currencies=d.currencies;
       else if(d.fxRate&&d.fxRate.usdToNgn){
         // Legacy single-rate migration: carry the user's existing USD rate into the new register
@@ -1729,6 +1929,22 @@ function load(){
 }
 
 /* ── Tab switching — also forces stocks table render after panel becomes visible ── */
+/* ── Mobile drawer menu ── */
+function toggleMobileMenu(){
+  const sidebar=document.getElementById('sidebar');
+  const overlay=document.getElementById('sidebar-overlay');
+  if(!sidebar||!overlay) return;
+  const isOpen=sidebar.classList.contains('open');
+  sidebar.classList.toggle('open',!isOpen);
+  overlay.classList.toggle('open',!isOpen);
+}
+function closeMobileMenu(){
+  const sidebar=document.getElementById('sidebar');
+  const overlay=document.getElementById('sidebar-overlay');
+  if(sidebar) sidebar.classList.remove('open');
+  if(overlay) overlay.classList.remove('open');
+}
+
 function switchTab(id,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -1738,6 +1954,8 @@ function switchTab(id,btn){
   renderAll();
   // Extra call for stocks panel to ensure table is visible after panel becomes active
   if(id==='stocks') setTimeout(renderStocksTable, 50);
+  // Close the mobile drawer after navigating, for convenience
+  closeMobileMenu();
 }
 
 function loadDefaults(){
@@ -2013,6 +2231,9 @@ function renderAll(){
   renderLiabilities();
   renderFxPanel();
   populateCurrencyDropdowns();
+  renderCashflow();
+  renderBudgeting();
+  renderCategories();
   renderUSDirectory();
   renderCryptoDirectory();
   renderStocksTable();
@@ -2133,6 +2354,9 @@ let cashAccounts = []; // {id, name, bank, type, currency, balance, rate, acctNu
 let realEstate = []; // {id, name, type, location, currency, purchasePrice, purchaseDate, value, note}
 let retirementAccounts = []; // {id, name, provider, type, currency, balance, contribution, note}
 let netWorthHistory = []; // {id, date, totalAssets, totalLiabilities, netWorth}
+let netWorthMilestones = []; // {id, label, target, achieved, achievedDate}
+let cashflowTxns = []; // {id, date, type, category, amount, currency, note}
+let budgets = []; // {id, category, amount, currency}
 let currencies = [ // extensible currency register — base is NGN, add any others here
   {code:'NGN', symbol:'₦', name:'Nigerian Naira', rateToNGN:1, updatedAt:'', source:'base'},
   {code:'USD', symbol:'$', name:'US Dollar', rateToNGN:1600, updatedAt:'', source:'default'},
@@ -2572,7 +2796,7 @@ function toCurrency(amount, fromCode, toCode){
 
 /* ── Populate any <select> that offers a currency choice ── */
 function populateCurrencyDropdowns(){
-  ['cash-currency','liab-currency','re-currency','ret-currency'].forEach(id=>{
+  ['cash-currency','liab-currency','re-currency','ret-currency','cf-currency','bud-currency'].forEach(id=>{
     const sel=document.getElementById(id);
     if(!sel) return;
     const prev=sel.value;
@@ -3042,6 +3266,292 @@ function renderRetirement(){
   h+=`<tr class="tfoot"><td colspan="3">Total (${retirementAccounts.length})</td>
     <td class="num" style="color:var(--blue)">${fmt(totalNGN)}</td>
     <td colspan="2"></td></tr>`;
+  el.innerHTML=h+'</tbody></table></div>';
+}
+
+/* ═══════════════════════════════════════════
+   INCOME & EXPENSES (CASH FLOW)
+═══════════════════════════════════════════ */
+const CF_CATEGORIES_DEFAULT={
+  income:['Salary','Business Income','Dividends/Investment Income','Rental Income','Gifts','Other Income'],
+  expense:['Housing','Transportation','Food & Groceries','Utilities','Healthcare','Entertainment','Debt Payments','Savings/Investments','Education','Personal Care','Insurance','Other']
+};
+let CF_CATEGORIES={income:[...CF_CATEGORIES_DEFAULT.income],expense:[...CF_CATEGORIES_DEFAULT.expense]};
+
+/* ═══════════════════════════════════════════
+   CATEGORY MANAGEMENT (Income/Expense/Budget)
+═══════════════════════════════════════════ */
+function addCategory(){
+  const type=document.getElementById('cat-type').value;
+  const name=document.getElementById('cat-name').value.trim();
+  if(!name){alert('Enter a category name.');return;}
+  if(CF_CATEGORIES[type].includes(name)){alert('That category already exists.');return;}
+  CF_CATEGORIES[type].push(name);
+  document.getElementById('cat-name').value='';
+  save(); renderCategories(); populateCFCategories(); populateBudgetCategoryDropdown();
+}
+
+function removeCategory(type, name){
+  const inUse = type==='income'||type==='expense'
+    ? cashflowTxns.some(t=>t.type===type && t.category===name)
+    : false;
+  const budgetInUse = type==='expense' && budgets.some(b=>b.category===name);
+  if((inUse||budgetInUse) && !confirm(`"${name}" is used by existing ${inUse?'transactions':''}${inUse&&budgetInUse?' and ':''}${budgetInUse?'budgets':''}. Remove it anyway? Those records keep the old category name but it will no longer appear in the dropdown.`)) return;
+  CF_CATEGORIES[type]=CF_CATEGORIES[type].filter(c=>c!==name);
+  save(); renderCategories(); populateCFCategories(); populateBudgetCategoryDropdown();
+}
+
+function resetCategoriesToDefault(){
+  if(!confirm('Reset both category lists to the built-in defaults? Custom categories you added will be removed from the list (existing transactions keep their category name).')) return;
+  CF_CATEGORIES={income:[...CF_CATEGORIES_DEFAULT.income],expense:[...CF_CATEGORIES_DEFAULT.expense]};
+  save(); renderCategories(); populateCFCategories(); populateBudgetCategoryDropdown();
+}
+
+function renderCategories(){
+  const build=(type)=>{
+    const el=document.getElementById(`cat-${type}-list`);
+    if(!el) return;
+    if(!CF_CATEGORIES[type].length){el.innerHTML='<div class="empty">No categories.</div>';return;}
+    let h='<div style="display:flex;flex-wrap:wrap;gap:6px">';
+    CF_CATEGORIES[type].forEach(c=>{
+      h+=`<span class="tag tag-grey" style="display:inline-flex;align-items:center;gap:6px;padding:5px 8px">
+        ${c} <button onclick="removeCategory('${type}','${c.replace(/'/g,"\\'")}')" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:11px;padding:0">✕</button>
+      </span>`;
+    });
+    el.innerHTML=h+'</div>';
+  };
+  build('income'); build('expense');
+}
+
+function populateCFCategories(){
+  const type=document.getElementById('cf-type').value;
+  const sel=document.getElementById('cf-category');
+  if(!sel) return;
+  const prev=sel.value;
+  sel.innerHTML=CF_CATEGORIES[type].map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(prev && CF_CATEGORIES[type].includes(prev)) sel.value=prev;
+}
+
+function populateCFMonthFilter(){
+  const sel=document.getElementById('cf-filter-month');
+  if(!sel) return;
+  const prev=sel.value;
+  const months=[...new Set(cashflowTxns.map(t=>t.date.slice(0,7)))].sort().reverse();
+  sel.innerHTML='<option value="">All months</option>'+months.map(m=>`<option value="${m}">${m}</option>`).join('');
+  if(prev && months.includes(prev)) sel.value=prev;
+}
+
+function saveCashflow(){
+  const date     = document.getElementById('cf-date').value;
+  const type     = document.getElementById('cf-type').value;
+  const category = document.getElementById('cf-category').value;
+  const amount   = parseFloat(document.getElementById('cf-amount').value)||0;
+  const currency = document.getElementById('cf-currency').value;
+  const note     = document.getElementById('cf-note').value.trim();
+  const editId   = document.getElementById('cf-edit-id').value;
+  if(!date){alert('Choose a date.');return;}
+  if(!amount){alert('Enter an amount.');return;}
+
+  if(editId){
+    const idx=cashflowTxns.findIndex(t=>t.id===editId);
+    if(idx>-1) cashflowTxns[idx]={...cashflowTxns[idx],date,type,category,amount,currency,note};
+  } else {
+    cashflowTxns.push({id:'cf_'+uid(),date,type,category,amount,currency,note});
+  }
+  cashflowTxns.sort((a,b)=>a.date.localeCompare(b.date));
+  cancelEditCashflow();
+  save(); renderCashflow(); renderBudgeting();
+}
+
+function loadCashflowForEdit(id){
+  const t=cashflowTxns.find(x=>x.id===id);
+  if(!t) return;
+  document.getElementById('cf-date').value=t.date;
+  document.getElementById('cf-type').value=t.type;
+  populateCFCategories();
+  document.getElementById('cf-category').value=t.category;
+  document.getElementById('cf-amount').value=t.amount;
+  document.getElementById('cf-currency').value=t.currency;
+  document.getElementById('cf-note').value=t.note||'';
+  document.getElementById('cf-edit-id').value=id;
+  document.getElementById('cf-form-title').textContent='Edit transaction';
+  document.getElementById('cf-edit-badge').style.display='flex';
+  document.getElementById('cf-submit-btn').textContent='Update ↗';
+  document.getElementById('cf-form-title').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function cancelEditCashflow(){
+  ['cf-amount','cf-note','cf-edit-id'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('cf-type').value='income';
+  populateCFCategories();
+  document.getElementById('cf-form-title').textContent='Add transaction';
+  document.getElementById('cf-edit-badge').style.display='none';
+  document.getElementById('cf-submit-btn').textContent='Save ↗';
+}
+
+function removeCashflow(id){
+  if(!confirm('Remove this transaction?')) return;
+  cashflowTxns=cashflowTxns.filter(t=>t.id!==id);
+  save(); renderCashflow(); renderBudgeting();
+}
+
+function renderCashflow(){
+  populateCFMonthFilter();
+  const thisMonth=new Date().toISOString().slice(0,7);
+  const monthNGN = t => toNGN(t.amount, t.currency);
+
+  const thisMonthTxns=cashflowTxns.filter(t=>t.date.slice(0,7)===thisMonth);
+  const incomeThisMonth=thisMonthTxns.filter(t=>t.type==='income').reduce((s,t)=>s+monthNGN(t),0);
+  const expenseThisMonth=thisMonthTxns.filter(t=>t.type==='expense').reduce((s,t)=>s+monthNGN(t),0);
+  const netThisMonth=incomeThisMonth-expenseThisMonth;
+  const allTimeIncome=cashflowTxns.filter(t=>t.type==='income').reduce((s,t)=>s+monthNGN(t),0);
+  const allTimeExpense=cashflowTxns.filter(t=>t.type==='expense').reduce((s,t)=>s+monthNGN(t),0);
+
+  const metricsEl=document.getElementById('cf-metrics');
+  if(metricsEl){
+    metricsEl.innerHTML=`
+      <div class="metric metric-c3"><div class="metric-label">Income (this month)</div><div class="metric-val" style="color:var(--green)">${fmt(incomeThisMonth)}</div></div>
+      <div class="metric metric-c6"><div class="metric-label">Expenses (this month)</div><div class="metric-val" style="color:var(--red)">${fmt(expenseThisMonth)}</div></div>
+      <div class="metric metric-c1"><div class="metric-label">Net this month</div><div class="metric-val" style="color:${netThisMonth>=0?'var(--green)':'var(--red)'}">${netThisMonth>=0?'+':''}${fmt(netThisMonth)}</div></div>
+      <div class="metric metric-c4"><div class="metric-label">All-time income</div><div class="metric-val">${fmtK(allTimeIncome)}</div></div>
+      <div class="metric metric-c7"><div class="metric-label">All-time expenses</div><div class="metric-val">${fmtK(allTimeExpense)}</div></div>`;
+  }
+
+  const monthFilter=document.getElementById('cf-filter-month')?.value||'';
+  const typeFilter=document.getElementById('cf-filter-type')?.value||'';
+  let rows=[...cashflowTxns];
+  if(monthFilter) rows=rows.filter(t=>t.date.slice(0,7)===monthFilter);
+  if(typeFilter) rows=rows.filter(t=>t.type===typeFilter);
+  rows.sort((a,b)=>b.date.localeCompare(a.date));
+
+  const el=document.getElementById('cf-table');
+  if(!el) return;
+  if(!rows.length){el.innerHTML='<div class="empty">No transactions recorded yet — add income or an expense above.</div>';return;}
+
+  let h='<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Category</th><th class="num">Amount</th><th>Note</th><th></th></tr></thead><tbody>';
+  rows.forEach(t=>{
+    const sym=t.currency==='USD'?'$':t.currency==='NGN'?'₦':t.currency+' ';
+    h+=`<tr class="tr-hover" onclick="loadCashflowForEdit('${t.id}')" title="Click to edit">
+      <td>${t.date}</td>
+      <td><span class="tag ${t.type==='income'?'tag-green':'tag-red'}">${t.type==='income'?'Income':'Expense'}</span></td>
+      <td style="font-size:12px">${t.category}</td>
+      <td class="num" style="font-weight:600;color:${t.type==='income'?'var(--green)':'var(--red)'}">${t.type==='income'?'+':'−'}${sym}${fmtN(t.amount)}</td>
+      <td style="font-size:11px;color:var(--ink3)">${t.note||''}</td>
+      <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removeCashflow('${t.id}')">✕</button></td>
+    </tr>`;
+  });
+  const totalIn=rows.filter(t=>t.type==='income').reduce((s,t)=>s+monthNGN(t),0);
+  const totalOut=rows.filter(t=>t.type==='expense').reduce((s,t)=>s+monthNGN(t),0);
+  h+=`<tr class="tfoot"><td colspan="3">Filtered total (₦ equiv.)</td><td class="num" style="color:${totalIn-totalOut>=0?'var(--green)':'var(--red)'}">${fmt(totalIn-totalOut)}</td><td colspan="2"></td></tr>`;
+  el.innerHTML=h+'</tbody></table></div>';
+}
+
+/* ═══════════════════════════════════════════
+   BUDGETING
+═══════════════════════════════════════════ */
+function populateBudgetCategoryDropdown(){
+  const sel=document.getElementById('bud-category');
+  if(!sel) return;
+  const prev=sel.value;
+  sel.innerHTML=CF_CATEGORIES.expense.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(prev && CF_CATEGORIES.expense.includes(prev)) sel.value=prev;
+}
+
+function saveBudget(){
+  const category = document.getElementById('bud-category').value;
+  const amount   = parseFloat(document.getElementById('bud-amount').value)||0;
+  const currency = document.getElementById('bud-currency').value;
+  const editId   = document.getElementById('bud-edit-id').value;
+  if(!amount){alert('Enter a monthly budget amount.');return;}
+
+  if(editId){
+    const idx=budgets.findIndex(b=>b.id===editId);
+    if(idx>-1) budgets[idx]={...budgets[idx],category,amount,currency};
+  } else {
+    const existing=budgets.find(b=>b.category===category);
+    if(existing){ existing.amount=amount; existing.currency=currency; }
+    else budgets.push({id:'bud_'+uid(),category,amount,currency});
+  }
+  cancelEditBudget();
+  save(); renderBudgeting();
+}
+
+function loadBudgetForEdit(id){
+  const b=budgets.find(x=>x.id===id);
+  if(!b) return;
+  document.getElementById('bud-category').value=b.category;
+  document.getElementById('bud-amount').value=b.amount;
+  document.getElementById('bud-currency').value=b.currency;
+  document.getElementById('bud-edit-id').value=id;
+  document.getElementById('bud-form-title').textContent='Edit budget';
+  document.getElementById('bud-edit-badge').style.display='flex';
+  document.getElementById('bud-submit-btn').textContent='Update ↗';
+  document.getElementById('bud-form-title').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function cancelEditBudget(){
+  ['bud-amount','bud-edit-id'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('bud-form-title').textContent='Set category budget';
+  document.getElementById('bud-edit-badge').style.display='none';
+  document.getElementById('bud-submit-btn').textContent='Save ↗';
+}
+
+function removeBudget(id){
+  if(!confirm('Remove this budget?')) return;
+  budgets=budgets.filter(b=>b.id!==id);
+  save(); renderBudgeting();
+}
+
+function renderBudgeting(){
+  populateBudgetCategoryDropdown();
+  const thisMonth=new Date().toISOString().slice(0,7);
+  const spentByCategory={};
+  cashflowTxns.filter(t=>t.type==='expense' && t.date.slice(0,7)===thisMonth).forEach(t=>{
+    spentByCategory[t.category]=(spentByCategory[t.category]||0)+toNGN(t.amount,t.currency);
+  });
+
+  const totalBudget=budgets.reduce((s,b)=>s+toNGN(b.amount,b.currency),0);
+  const totalSpent=budgets.reduce((s,b)=>s+(spentByCategory[b.category]||0),0);
+  const overBudgetCount=budgets.filter(b=>(spentByCategory[b.category]||0)>toNGN(b.amount,b.currency)).length;
+
+  const metricsEl=document.getElementById('bud-metrics');
+  if(metricsEl){
+    metricsEl.innerHTML=`
+      <div class="metric metric-c1"><div class="metric-label">Total budgeted</div><div class="metric-val" style="color:var(--blue)">${fmt(totalBudget)}</div></div>
+      <div class="metric metric-c6"><div class="metric-label">Total spent so far</div><div class="metric-val" style="color:var(--red)">${fmt(totalSpent)}</div></div>
+      <div class="metric metric-c3"><div class="metric-label">Remaining</div><div class="metric-val" style="color:${totalBudget-totalSpent>=0?'var(--green)':'var(--red)'}">${fmt(totalBudget-totalSpent)}</div></div>
+      <div class="metric metric-c7"><div class="metric-label">Categories over budget</div><div class="metric-val">${overBudgetCount}</div></div>`;
+  }
+
+  const el=document.getElementById('bud-table');
+  if(!el) return;
+  if(!budgets.length){el.innerHTML='<div class="empty">No budgets set — pick a category above and set a monthly limit.</div>';return;}
+
+  let h='<div class="tbl-wrap"><table><thead><tr><th>Category</th><th class="num">Budget</th><th class="num">Spent</th><th>Progress</th><th></th></tr></thead><tbody>';
+  budgets.forEach(b=>{
+    const budgetNGN=toNGN(b.amount,b.currency);
+    const spent=spentByCategory[b.category]||0;
+    const pct=budgetNGN>0?Math.min(150,(spent/budgetNGN)*100):0;
+    const over=spent>budgetNGN;
+    const sym=b.currency==='USD'?'$':b.currency==='NGN'?'₦':b.currency+' ';
+    h+=`<tr class="tr-hover" onclick="loadBudgetForEdit('${b.id}')" title="Click to edit">
+      <td><strong>${b.category}</strong></td>
+      <td class="num">${sym}${fmtN(b.amount)}</td>
+      <td class="num" style="color:${over?'var(--red)':'var(--ink)'}">${fmt(spent)}</td>
+      <td style="min-width:120px">
+        <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden">
+          <div style="width:${Math.min(100,pct)}%;height:100%;background:${over?'var(--red)':pct>80?'var(--amber)':'var(--green)'}"></div>
+        </div>
+        <div style="font-size:10px;color:${over?'var(--red)':'var(--ink3)'};margin-top:2px">${pct.toFixed(0)}%${over?' — over budget':''}</div>
+      </td>
+      <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removeBudget('${b.id}')">✕</button></td>
+    </tr>`;
+  });
+  h+=`<tr class="tfoot"><td>Total</td><td class="num">${fmt(totalBudget)}</td><td class="num">${fmt(totalSpent)}</td><td colspan="2"></td></tr>`;
   el.innerHTML=h+'</tbody></table></div>';
 }
 
@@ -4160,21 +4670,206 @@ function computeNetWorth(){
   };
 }
 
-function saveNetWorthSnapshot(){
+function prefillTodaySnapshot(){
   const nw=computeNetWorth();
-  const dateStr=new Date().toISOString().split('T')[0];
-  const idx=netWorthHistory.findIndex(h=>h.date===dateStr);
-  const entry={id:idx>-1?netWorthHistory[idx].id:'nw_'+uid(), date:dateStr, totalAssets:nw.totalAssets, totalLiabilities:nw.liabNGN, netWorth:nw.netWorth};
-  if(idx>-1) netWorthHistory[idx]=entry;
-  else netWorthHistory.push(entry);
+  document.getElementById('nw-snap-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('nw-snap-assets').value=nw.totalAssets.toFixed(2);
+  document.getElementById('nw-snap-liabilities').value=nw.liabNGN.toFixed(2);
+  updateSnapNetWorthPreview();
+}
+
+function updateSnapNetWorthPreview(){
+  const assets=parseFloat(document.getElementById('nw-snap-assets').value)||0;
+  const liab=parseFloat(document.getElementById('nw-snap-liabilities').value)||0;
+  document.getElementById('nw-snap-networth').value=fmt(assets-liab);
+}
+
+function saveNetWorthSnapshot(){
+  const date=document.getElementById('nw-snap-date').value;
+  const assets=parseFloat(document.getElementById('nw-snap-assets').value)||0;
+  const liab=parseFloat(document.getElementById('nw-snap-liabilities').value)||0;
+  const editId=document.getElementById('nw-snap-edit-id').value;
+  if(!date){alert('Choose a date, or click the Use today button to fill everything in automatically.');return;}
+  if(!assets && !liab){alert('Enter total assets/liabilities, or click the Use today button.');return;}
+
+  const netWorth=assets-liab;
+  if(editId){
+    const idx=netWorthHistory.findIndex(h=>h.id===editId);
+    if(idx>-1) netWorthHistory[idx]={...netWorthHistory[idx],date,totalAssets:assets,totalLiabilities:liab,netWorth};
+  } else {
+    const idx=netWorthHistory.findIndex(h=>h.date===date);
+    if(idx>-1) netWorthHistory[idx]={...netWorthHistory[idx],totalAssets:assets,totalLiabilities:liab,netWorth};
+    else netWorthHistory.push({id:'nw_'+uid(),date,totalAssets:assets,totalLiabilities:liab,netWorth});
+  }
   netWorthHistory.sort((a,b)=>a.date.localeCompare(b.date));
+  cancelEditSnapshot();
   save(); renderNetWorthDashboard();
+}
+
+function loadSnapshotForEdit(id){
+  const s=netWorthHistory.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('nw-snap-date').value=s.date;
+  document.getElementById('nw-snap-assets').value=s.totalAssets;
+  document.getElementById('nw-snap-liabilities').value=s.totalLiabilities;
+  document.getElementById('nw-snap-edit-id').value=id;
+  updateSnapNetWorthPreview();
+  document.getElementById('nw-snap-form-title').textContent='Edit snapshot';
+  document.getElementById('nw-snap-edit-badge').style.display='flex';
+  document.getElementById('nw-snap-submit-btn').textContent='Update ↗';
+  document.getElementById('nw-snap-form-title').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function cancelEditSnapshot(){
+  ['nw-snap-date','nw-snap-assets','nw-snap-liabilities','nw-snap-networth','nw-snap-edit-id'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('nw-snap-form-title').textContent='Add / edit snapshot';
+  document.getElementById('nw-snap-edit-badge').style.display='none';
+  document.getElementById('nw-snap-submit-btn').textContent='Save ↗';
 }
 
 function removeNetWorthSnapshot(id){
   if(!confirm('Remove this snapshot?')) return;
   netWorthHistory=netWorthHistory.filter(h=>h.id!==id);
   save(); renderNetWorthDashboard();
+}
+
+function exportNetWorthHistoryCSV(){
+  if(!netWorthHistory.length){alert('No snapshots to export yet.');return;}
+  const sorted=[...netWorthHistory].sort((a,b)=>a.date.localeCompare(b.date));
+  let csv='Date,Total Assets (NGN),Total Liabilities (NGN),Net Worth (NGN)\n';
+  sorted.forEach(s=>{
+    csv+=`${s.date},${s.totalAssets.toFixed(2)},${s.totalLiabilities.toFixed(2)},${s.netWorth.toFixed(2)}\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='net_worth_history_'+today+'.csv';
+  a.click();
+  setStatus('Exported — '+a.download);
+}
+
+/* ═══════════════════════════════════════════
+   NET WORTH MILESTONES
+═══════════════════════════════════════════ */
+let dismissedMilestones=new Set();
+
+function saveMilestone(){
+  const label=document.getElementById('nwm-label').value.trim();
+  const target=parseFloat(document.getElementById('nwm-target').value)||0;
+  const editId=document.getElementById('nwm-edit-id').value;
+  if(!label){alert('Enter a label for this milestone.');return;}
+  if(!target){alert('Enter a target net worth amount.');return;}
+
+  if(editId){
+    const idx=netWorthMilestones.findIndex(m=>m.id===editId);
+    if(idx>-1) netWorthMilestones[idx]={...netWorthMilestones[idx],label,target,achieved:false,achievedDate:''};
+  } else {
+    netWorthMilestones.push({id:'nwm_'+uid(),label,target,achieved:false,achievedDate:''});
+  }
+  netWorthMilestones.sort((a,b)=>a.target-b.target);
+  cancelEditMilestone();
+  save(); checkNetWorthMilestones(); renderMilestones();
+}
+
+function loadMilestoneForEdit(id){
+  const m=netWorthMilestones.find(x=>x.id===id);
+  if(!m) return;
+  document.getElementById('nwm-label').value=m.label;
+  document.getElementById('nwm-target').value=m.target;
+  document.getElementById('nwm-edit-id').value=id;
+  document.getElementById('nwm-form-title').textContent='Edit milestone';
+  document.getElementById('nwm-edit-badge').style.display='flex';
+  document.getElementById('nwm-submit-btn').textContent='Update ↗';
+  document.getElementById('nwm-form-title').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function cancelEditMilestone(){
+  ['nwm-label','nwm-target','nwm-edit-id'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('nwm-form-title').textContent='Add net worth milestone';
+  document.getElementById('nwm-edit-badge').style.display='none';
+  document.getElementById('nwm-submit-btn').textContent='Save ↗';
+}
+
+function removeMilestone(id){
+  if(!confirm('Remove this milestone?')) return;
+  netWorthMilestones=netWorthMilestones.filter(m=>m.id!==id);
+  save(); renderMilestones();
+}
+
+function dismissMilestone(id){
+  dismissedMilestones.add(id);
+  renderMilestoneBar();
+}
+
+/* Checks current net worth against every milestone and flags newly-achieved ones */
+function checkNetWorthMilestones(){
+  const nw=computeNetWorth();
+  let changed=false;
+  netWorthMilestones.forEach(m=>{
+    const isAchieved=nw.netWorth>=m.target;
+    if(isAchieved!==m.achieved){
+      m.achieved=isAchieved;
+      m.achievedDate=isAchieved?new Date().toISOString().split('T')[0]:'';
+      changed=true;
+    }
+  });
+  if(changed) save();
+  renderMilestoneBar();
+}
+
+function renderMilestoneBar(){
+  const bar=document.getElementById('nwm-triggered-bar');
+  if(!bar) return;
+  const achieved=netWorthMilestones.filter(m=>m.achieved && !dismissedMilestones.has(m.id));
+  if(!achieved.length){ bar.style.display='none'; bar.innerHTML=''; return; }
+  let h=`<div class="alert-bar">
+    <div class="alert-bar-title">🎉 ${achieved.length} net worth milestone${achieved.length!==1?'s':''} reached</div>`;
+  achieved.forEach(m=>{
+    h+=`<div class="alert-item">
+      <span class="alert-item-icon">🏆</span>
+      <strong>${m.label}</strong>
+      <span class="alert-badge-above">₦${fmtN(m.target)}</span>
+      <span style="color:var(--ink2)">reached ${m.achievedDate}</span>
+      <button class="alert-dismiss" onclick="dismissMilestone('${m.id}')" title="Dismiss">✕</button>
+    </div>`;
+  });
+  h+='</div>';
+  bar.innerHTML=h;
+  bar.style.display='block';
+}
+
+function renderMilestones(){
+  const nw=computeNetWorth();
+  const el=document.getElementById('nwm-list');
+  if(!el) return;
+  if(!netWorthMilestones.length){el.innerHTML='<div class="empty">No milestones set — add a target above, e.g. "Debt-free" or "First ₦50M".</div>';return;}
+
+  let h='';
+  netWorthMilestones.forEach(m=>{
+    const pct=m.target>0?Math.max(0,Math.min(100,(nw.netWorth/m.target)*100)):0;
+    h+=`<div class="tr-hover" onclick="loadMilestoneForEdit('${m.id}')" title="Click to edit"
+        style="padding:10px 8px;border-bottom:.5px solid var(--border);cursor:pointer">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <div style="display:flex;align-items:center;gap:8px">
+          ${m.achieved?'<span style="font-size:14px">✅</span>':'<span style="font-size:14px;opacity:.3">◯</span>'}
+          <strong>${m.label}</strong>
+          <span style="font-size:11px;color:var(--ink3)">₦${fmtN(m.target)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;font-weight:600;color:${m.achieved?'var(--green)':'var(--ink2)'}">${pct.toFixed(0)}%</span>
+          <button class="btn-danger btn-sm" onclick="event.stopPropagation();removeMilestone('${m.id}')">✕</button>
+        </div>
+      </div>
+      <div style="height:6px;background:var(--bg);border-radius:3px">
+        <div style="width:${pct}%;height:100%;background:${m.achieved?'var(--green)':'var(--accent)'};border-radius:3px"></div>
+      </div>
+    </div>`;
+  });
+  el.innerHTML=h;
 }
 
 function renderNetWorthDashboard(){
@@ -4252,6 +4947,8 @@ function renderNetWorthDashboard(){
   }
 
   renderNetWorthHistory();
+  checkNetWorthMilestones();
+  renderMilestones();
 }
 
 function renderNetWorthHistory(){
@@ -4274,16 +4971,16 @@ function renderNetWorthHistory(){
   // History table
   const el=document.getElementById('nw-history-table');
   if(!el) return;
-  if(!netWorthHistory.length){el.innerHTML='<div class="empty">No snapshots saved yet — click Save today&#39;s snapshot above to start tracking your trend.</div>';return;}
+  if(!netWorthHistory.length){el.innerHTML='<div class="empty">No snapshots saved yet — use the form above to add one, or click Use today button for an automatic reading.</div>';return;}
   const sorted=[...netWorthHistory].sort((a,b)=>b.date.localeCompare(a.date));
   let h='<div class="tbl-wrap"><table><thead><tr><th>Date</th><th class="num">Total Assets</th><th class="num">Total Liabilities</th><th class="num">Net Worth</th><th></th></tr></thead><tbody>';
   sorted.forEach(s=>{
-    h+=`<tr>
+    h+=`<tr class="tr-hover" onclick="loadSnapshotForEdit('${s.id}')" title="Click to edit">
       <td>${s.date}</td>
       <td class="num">${fmt(s.totalAssets)}</td>
       <td class="num" style="color:var(--red)">${fmt(s.totalLiabilities)}</td>
       <td class="num" style="font-weight:600;color:${s.netWorth>=0?'var(--green)':'var(--red)'}">${fmt(s.netWorth)}</td>
-      <td><button class="btn-danger btn-sm" onclick="removeNetWorthSnapshot('${s.id}')">✕</button></td>
+      <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removeNetWorthSnapshot('${s.id}')">✕</button></td>
     </tr>`;
   });
   el.innerHTML=h+'</tbody></table></div>';
@@ -5245,7 +5942,7 @@ function renderAllocation(){
    IMPORT / EXPORT
 ═══════════════════════════════════════════ */
 function exportData(){
-  const data={holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,exportedAt:new Date().toISOString()};
+  const data={holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,netWorthMilestones,cashflowTxns,budgets,cfCategories:CF_CATEGORIES,exportedAt:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='investment_tracker_backup_'+today+'.json'; a.click();
@@ -5280,6 +5977,10 @@ function importData(){
       if(d.realEstate)     realEstate=d.realEstate||[];
       if(d.retirementAccounts) retirementAccounts=d.retirementAccounts||[];
       if(d.netWorthHistory)    netWorthHistory=d.netWorthHistory||[];
+      if(d.netWorthMilestones) netWorthMilestones=d.netWorthMilestones||[];
+      if(d.cashflowTxns)       cashflowTxns=d.cashflowTxns||[];
+      if(d.budgets)            budgets=d.budgets||[];
+      if(d.cfCategories)       CF_CATEGORIES=d.cfCategories;
       if(d.currencies&&d.currencies.length) currencies=d.currencies;
       else if(d.fxRate&&d.fxRate.usdToNgn){
         const usdEntry=currencies.find(c=>c.code==='USD');
@@ -5311,6 +6012,8 @@ document.getElementById('pur-date').value=today;
 document.getElementById('mf-date').value=today;
 document.getElementById('fund-date').value=today;
 document.getElementById('liab-start').value=today;
+document.getElementById('cf-date').value=today;
+populateCFCategories();
 load();
 // Restore cloud sync connection if a code was previously set on this device
 syncCode=localStorage.getItem('pit_sync_code')||'';
