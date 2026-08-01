@@ -981,14 +981,25 @@ button:hover{background:var(--bg)}
 <!-- ══════════════════════ DIVIDENDS ══════════════════════ -->
 <div id="panel-dividends" class="panel">
   <div class="card">
-    <div class="card-title">Record / update dividend</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="card-title" style="margin-bottom:0" id="div-form-title">Record / update dividend</div>
+      <div id="div-edit-badge" style="display:none;align-items:center;gap:6px">
+        <span class="tag tag-amber">✏️ Editing</span>
+        <button class="btn-sm" onclick="cancelEditDividend()">✕ Cancel</button>
+      </div>
+    </div>
     <div class="row">
       <div class="f15"><label>Stock</label><input id="div-stock" list="ngx-list3" placeholder="e.g. ZENITHBANK"/><datalist id="ngx-list3"></datalist></div>
       <div class="f1"><label>Year</label><input id="div-year" type="number" value="2026" min="2000"/></div>
-      <div class="f1"><label>DPS (₦)</label><input id="div-dps" type="number" min="0" step="0.001" placeholder="0.000"/></div>
+      <div class="f1"><label>DPS (₦)</label><input id="div-dps" type="number" min="0" step="0.001" placeholder="0.000" oninput="updateDivWHTPreview()"/></div>
       <div class="f1"><label>Qual. Date</label><input id="div-qual" type="date"/></div>
       <div class="f1"><label>Payment Date</label><input id="div-pay" type="date"/></div>
-      <div class="f1"><label>Amt Received (₦)</label><input id="div-received" type="number" min="0" step="0.01" placeholder="0.00"/></div>
+    </div>
+    <div class="row">
+      <div class="f1"><label>WHT (%)</label><input id="div-wht-pct" type="number" min="0" step="0.01" value="10" oninput="updateDivWHTPreview()"/></div>
+      <div class="f1"><label>WHT amount (₦)</label><input id="div-wht-amt" type="number" min="0" step="0.01" placeholder="Auto-calculated"/></div>
+      <div class="f1"><label>Gross amount (₦)</label><input id="div-gross" type="number" min="0" step="0.01" placeholder="0.00" oninput="updateDivWHTPreview()"/></div>
+      <div class="f1"><label>Net amt received (₦)</label><input id="div-received" type="number" min="0" step="0.01" placeholder="Auto-calculated"/></div>
       <div class="f1"><label>Status</label>
         <select id="div-status">
           <option value="">Pending</option>
@@ -996,8 +1007,10 @@ button:hover{background:var(--bg)}
           <option value="reinvested">Reinvested</option>
         </select>
       </div>
-      <div style="flex:0"><button class="btn-primary" onclick="saveDividend()">Save ↗</button></div>
+      <div style="flex:0"><button class="btn-primary" id="div-submit-btn" onclick="saveDividend()">Save ↗</button></div>
     </div>
+    <div class="hint">WHT amount and net received auto-calculate from Gross × WHT% — you can still edit either manually afterward if the actual figures differ.</div>
+    <input type="hidden" id="div-edit-id"/>
   </div>
   <div class="card">
     <div class="card-title">Dividends tracker</div>
@@ -5399,6 +5412,14 @@ function renderPurchases(){
 /* ═══════════════════════════════════════════
    DIVIDENDS
 ═══════════════════════════════════════════ */
+function updateDivWHTPreview(){
+  const gross=parseFloat(document.getElementById('div-gross').value)||0;
+  const pct=parseFloat(document.getElementById('div-wht-pct').value)||0;
+  const whtAmt=gross*(pct/100);
+  document.getElementById('div-wht-amt').value=whtAmt?whtAmt.toFixed(2):'';
+  document.getElementById('div-received').value=gross?(gross-whtAmt).toFixed(2):'';
+}
+
 function saveDividend(){
   const stock=document.getElementById('div-stock').value.trim().toUpperCase();
   const year=parseInt(document.getElementById('div-year').value)||new Date().getFullYear();
@@ -5406,16 +5427,55 @@ function saveDividend(){
   const dps=parseFloat(document.getElementById('div-dps').value)||0;
   const qualDate=document.getElementById('div-qual').value;
   const payDate=document.getElementById('div-pay').value;
+  const whtPct=parseFloat(document.getElementById('div-wht-pct').value)||0;
+  const whtAmt=parseFloat(document.getElementById('div-wht-amt').value)||0;
+  const gross=parseFloat(document.getElementById('div-gross').value)||0;
   const received=parseFloat(document.getElementById('div-received').value)||0;
   const status=document.getElementById('div-status').value;
-  const idx=dividends.findIndex(d=>d.stock===stock&&d.year===year);
-  const entry={stock,year,dps,qualDate,payDate,received,status};
-  if(idx>-1) dividends[idx]=entry;
-  else dividends.push(entry);
-  document.getElementById('div-stock').value='';
-  document.getElementById('div-dps').value='';
-  document.getElementById('div-received').value='';
+  const editId=document.getElementById('div-edit-id').value;
+
+  const entry={stock,year,dps,qualDate,payDate,whtPct,whtAmt,gross,received,status};
+  if(editId){
+    const idx=dividends.findIndex(d=>d.id===editId);
+    if(idx>-1) dividends[idx]={...dividends[idx],...entry};
+  } else {
+    const idx=dividends.findIndex(d=>d.stock===stock&&d.year===year);
+    if(idx>-1) dividends[idx]={...dividends[idx],...entry};
+    else dividends.push({id:'div_'+uid(),...entry});
+  }
+  cancelEditDividend();
   save(); renderAll();
+}
+
+function loadDividendForEdit(id){
+  const d=dividends.find(x=>x.id===id);
+  if(!d) return;
+  document.getElementById('div-stock').value=d.stock||'';
+  document.getElementById('div-year').value=d.year||new Date().getFullYear();
+  document.getElementById('div-dps').value=d.dps||'';
+  document.getElementById('div-qual').value=d.qualDate||'';
+  document.getElementById('div-pay').value=d.payDate||'';
+  document.getElementById('div-wht-pct').value=d.whtPct??10;
+  document.getElementById('div-wht-amt').value=d.whtAmt||'';
+  document.getElementById('div-gross').value=d.gross||'';
+  document.getElementById('div-received').value=d.received||'';
+  document.getElementById('div-status').value=d.status||'';
+  document.getElementById('div-edit-id').value=id;
+  document.getElementById('div-form-title').textContent='Edit dividend record';
+  document.getElementById('div-edit-badge').style.display='flex';
+  document.getElementById('div-submit-btn').textContent='Update ↗';
+  document.getElementById('div-form-title').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function cancelEditDividend(){
+  ['div-stock','div-dps','div-qual','div-pay','div-wht-amt','div-gross','div-received','div-edit-id'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('div-wht-pct').value=10;
+  document.getElementById('div-status').value='';
+  document.getElementById('div-form-title').textContent='Record / update dividend';
+  document.getElementById('div-edit-badge').style.display='none';
+  document.getElementById('div-submit-btn').textContent='Save ↗';
 }
 
 function renderDividends(){
@@ -5424,26 +5484,29 @@ function renderDividends(){
     const h=holdings.find(x=>x.ticker===d.stock);
     return s+(d.dps*(h?h.shares:0)||0);
   },0);
+  const totalWHT=dividends.reduce((s,d)=>s+(d.whtAmt||0),0);
   const totalReceived=dividends.reduce((s,d)=>s+(d.received||0),0);
 
-  let html='<div class="tbl-wrap"><table><thead><tr><th>Stock</th><th class="num">Shares</th><th class="num">DPS</th><th class="num">Total Declared</th><th>Qual. Date</th><th>Pay Date</th><th class="num">Received</th><th>Status</th></tr></thead><tbody>';
+  let html='<div class="tbl-wrap"><table><thead><tr><th>Stock</th><th class="num">Shares</th><th class="num">DPS</th><th class="num">Total Declared</th><th>Qual. Date</th><th>Pay Date</th><th class="num">WHT %</th><th class="num">WHT Amt</th><th class="num">Net Received</th><th>Status</th></tr></thead><tbody>';
   [...dividends].sort((a,b)=>a.stock.localeCompare(b.stock)).forEach(d=>{
     const h=holdings.find(x=>x.ticker===d.stock);
     const shares=h?h.shares:0;
     const total=d.dps*shares;
     const stCl=d.status==='paid'?'tag-green':d.status==='reinvested'?'tag-blue':'tag-amber';
-    html+=`<tr>
+    html+=`<tr class="tr-hover" onclick="loadDividendForEdit('${d.id}')" title="Click to edit">
       <td><strong>${d.stock}</strong></td>
       <td class="num">${Number(shares).toLocaleString()}</td>
       <td class="num">${fmtN(d.dps)}</td>
       <td class="num">${total>0?fmt(total):'—'}</td>
       <td>${d.qualDate||'—'}</td>
       <td>${d.payDate||'—'}</td>
+      <td class="num">${d.whtPct?d.whtPct.toFixed(2)+'%':'—'}</td>
+      <td class="num" style="color:var(--red)">${d.whtAmt>0?fmt(d.whtAmt):'—'}</td>
       <td class="num" style="font-weight:600">${d.received>0?fmt(d.received):'—'}</td>
       <td><span class="tag ${stCl}">${d.status||'pending'}</span></td>
     </tr>`;
   });
-  html+=`<tr class="tfoot"><td colspan="3">Total</td><td class="num">${fmt(totalDeclared)}</td><td colspan="2"></td><td class="num">${fmt(totalReceived)}</td><td></td></tr>`;
+  html+=`<tr class="tfoot"><td colspan="3">Total</td><td class="num">${fmt(totalDeclared)}</td><td colspan="2"></td><td></td><td class="num" style="color:var(--red)">${fmt(totalWHT)}</td><td class="num">${fmt(totalReceived)}</td><td></td></tr>`;
   document.getElementById('dividends-table').innerHTML=html+'</tbody></table></div>';
 }
 
