@@ -223,20 +223,20 @@ button:hover{background:var(--bg)}
   </div>
   <div class="sidebar-section">
     <div class="sidebar-label">Investments</div>
-    <button class="settings-btn" id="stocks-menu-toggle" onclick="toggleStocksMenu(this)">
+    <button class="settings-btn" id="registers-menu-toggle" onclick="toggleRegistersMenu(this)">
       📈 Registers <span class="arrow">▾</span>
     </button>
-    <div class="settings-submenu" id="stocks-submenu">
-        <button onclick="switchTab('portfolios',this);closeSettings()">📁 Portfolios</button>
-        <button onclick="switchTab('brokers',this);closeSettings()">🏢 Brokers</button>
-        <button onclick="switchTab('funds',this);closeSettings()">💹 Funds</button>
+    <div class="settings-submenu" id="registers-submenu">
+        <button onclick="switchTab('portfolios',this);closeRegistersMenu()">📁 Portfolios</button>
+        <button onclick="switchTab('brokers',this);closeRegistersMenu()">🏢 Brokers</button>
+        <button onclick="switchTab('funds',this);closeRegistersMenu()">💹 Funds</button>
       </div>
-    <button class="settings-btn" id="stocks-menu-toggle" onclick="toggleStocksMenu(this)">
+    <button class="settings-btn" id="pf-menu-toggle" onclick="togglePFMenu(this)">
       📈 Portfolios <span class="arrow">▾</span>
     </button>
-    <div class="settings-submenu" id="stocks-submenu">
-      <button onclick="switchTab('projection',this);closeStocksMenu()">💼 Projection</button>
-      <button onclick="switchTab('allocation',this);closeStocksMenu()">🛒 Allocation</button>
+    <div class="settings-submenu" id="pf-submenu">
+      <button onclick="switchTab('projection',this);closePFMenu()">💼 Projection</button>
+      <button onclick="switchTab('allocation',this);closePFMenu()">🛒 Allocation</button>
     </div>
     <button class="settings-btn" id="stocks-menu-toggle" onclick="toggleStocksMenu(this)">
       📈 Stocks <span class="arrow">▾</span>
@@ -2226,6 +2226,26 @@ function toggleStocksMenu(btn){
 function closeStocksMenu(){
   document.getElementById('stocks-submenu').classList.remove('open');
   document.getElementById('stocks-menu-toggle').classList.remove('open');
+}
+function toggleRegistersMenu(btn){
+  const sub=document.getElementById('registers-submenu');
+  const isOpen=sub.classList.contains('open');
+  sub.classList.toggle('open',!isOpen);
+  btn.classList.toggle('open',!isOpen);
+}
+function closeRegistersMenu(){
+  document.getElementById('registers-submenu').classList.remove('open');
+  document.getElementById('registers-menu-toggle').classList.remove('open');
+}
+function togglePFMenu(btn){
+  const sub=document.getElementById('pf-submenu');
+  const isOpen=sub.classList.contains('open');
+  sub.classList.toggle('open',!isOpen);
+  btn.classList.toggle('open',!isOpen);
+}
+function closePFMenu(){
+  document.getElementById('pf-submenu').classList.remove('open');
+  document.getElementById('pf-menu-toggle').classList.remove('open');
 }
 
 /* ─── RenderAll ─── */
