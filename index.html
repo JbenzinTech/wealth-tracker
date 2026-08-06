@@ -26,18 +26,18 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;background:var(--bg);color:var(--ink);min-height:100vh}
 
 /* ── Hero header ── */
-.hero{background:linear-gradient(135deg,#0f1923 0%,#1558a8 100%);color:#fff;padding:28px 32px 22px;position:relative;overflow:hidden}
+.hero{background:linear-gradient(135deg,#0f1923 0%,#1558a8 100%);color:#fff;text-align:center;padding:28px 32px 22px;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;right:-60px;top:-60px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none}
 .hero::after{content:'';position:absolute;right:40px;bottom:-80px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.03);pointer-events:none}
 .hero-eyebrow{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.5;margin-bottom:6px}
-.hero-title{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:4px}
+.hero-title{font-size:26px;font-weight:700;letter-spacing:-.02em;text-transform: uppercase;line-height:1.15;margin-bottom:4px}
 .hero-sub{font-size:12px;opacity:.5;letter-spacing:.04em}
 
 /* ── Sidebar layout ── */
 .app-shell{display:flex;height:calc(100vh - 90px);overflow:hidden}
 .sidebar{width:200px;flex-shrink:0;background:#1a2636;display:flex;flex-direction:column;overflow-y:auto;position:sticky;top:0;height:calc(100vh - 90px)}
 .sidebar-section{padding:10px 0 4px}
-.sidebar-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:0 16px;margin-bottom:4px}
+.sidebar-label{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255, 255, 255, 0.512);padding:0 16px;margin-bottom:4px}
 .nav-btn{display:block;width:100%;text-align:left;padding:9px 16px;font-size:12px;font-weight:500;border:none;background:none;cursor:pointer;color:rgba(255,255,255,.55);white-space:nowrap;font-family:inherit;transition:background .15s,color .15s;border-left:3px solid transparent}
 .nav-btn.active{color:#fff;background:rgba(255,255,255,.08);border-left-color:#4d9de8}
 .nav-btn:hover:not(.active){color:#fff;background:rgba(255,255,255,.05)}
@@ -201,9 +201,8 @@ button:hover{background:var(--bg)}
   <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Open menu">
     <span></span><span></span><span></span>
   </button>
-  <div class="hero-eyebrow">NGX · Personal Finance</div>
   <div class="hero-title">Investment Portfolio Tracker</div>
-  <div class="hero-sub">v2.0 &nbsp;·&nbsp; Nigerian Exchange Group</div>
+  <div class="hero-sub">v2.4 &nbsp;·&nbsp; Nigerian Exchange Group</div>
 </div>
 
 <!-- Mobile drawer overlay -->
@@ -223,7 +222,22 @@ button:hover{background:var(--bg)}
     <button class="nav-btn" onclick="switchTab('networth',this)">💎 Net Worth</button>
   </div>
   <div class="sidebar-section">
-    <div class="sidebar-label">Portfolio</div>
+    <div class="sidebar-label">Investments</div>
+    <button class="settings-btn" id="stocks-menu-toggle" onclick="toggleStocksMenu(this)">
+      📈 Registers <span class="arrow">▾</span>
+    </button>
+    <div class="settings-submenu" id="stocks-submenu">
+        <button onclick="switchTab('portfolios',this);closeSettings()">📁 Portfolios</button>
+        <button onclick="switchTab('brokers',this);closeSettings()">🏢 Brokers</button>
+        <button onclick="switchTab('funds',this);closeSettings()">💹 Funds</button>
+      </div>
+    <button class="settings-btn" id="stocks-menu-toggle" onclick="toggleStocksMenu(this)">
+      📈 Portfolios <span class="arrow">▾</span>
+    </button>
+    <div class="settings-submenu" id="stocks-submenu">
+      <button onclick="switchTab('projection',this);closeStocksMenu()">💼 Projection</button>
+      <button onclick="switchTab('allocation',this);closeStocksMenu()">🛒 Allocation</button>
+    </div>
     <button class="settings-btn" id="stocks-menu-toggle" onclick="toggleStocksMenu(this)">
       📈 Stocks <span class="arrow">▾</span>
     </button>
@@ -246,11 +260,11 @@ button:hover{background:var(--bg)}
       <button onclick="switchTab('alerts',this);closeAlertsMenu()">🎯 Price Alerts</button>
     </div>
   </div>
-  <div class="sidebar-section">
+  <!-- <div class="sidebar-section">
     <div class="sidebar-label">Planning</div>
     <button class="nav-btn" onclick="switchTab('projection',this)">🎯 Projection</button>
     <button class="nav-btn" onclick="switchTab('allocation',this)">🥧 Allocation</button>
-  </div>
+  </div> -->
   <div class="sidebar-section">
     <div class="sidebar-label">Global Assets</div>
     <button class="nav-btn" onclick="switchTab('usstocks',this)">🇺🇸 US Stocks/ETFs</button>
@@ -284,11 +298,11 @@ button:hover{background:var(--bg)}
       <button class="settings-btn" id="lists-toggle" onclick="toggleListsMenu(this)" style="padding-left:28px;border-left:none;width:100%">
         📋 Lists <span class="arrow">▾</span>
       </button>
-      <div class="settings-submenu" id="lists-submenu" style="background:rgba(0,0,0,.15)">
+      <!-- <div class="settings-submenu" id="lists-submenu" style="background:rgba(0,0,0,.15)">
         <button onclick="switchTab('portfolios',this);closeSettings()">📁 Portfolios</button>
         <button onclick="switchTab('brokers',this);closeSettings()">🏢 Brokers</button>
         <button onclick="switchTab('funds',this);closeSettings()">💹 Funds</button>
-      </div>
+      </div> -->
       <button onclick="switchTab('fx',this);closeSettings()">💱 Currency &amp; FX</button>
       <div class="settings-submenu-section" onclick="switchTab('categories',this);closeSettings()">🏷️ Categories</div>
       <div class="settings-submenu-section" onclick="switchTab('datastorage',this);closeSettings()">💾 Data Storage</div>
@@ -435,7 +449,7 @@ button:hover{background:var(--bg)}
       <div class="f15"><label>Ticker / Stock</label><input id="port-ticker" list="purchased-list" placeholder="e.g. MTNN" oninput="onTickerInput(this.value)"/><datalist id="purchased-list"></datalist></div>
       <div class="f15"><label>Company name</label><input id="port-company" type="text" placeholder="Auto-filled or enter manually"/></div>
       <div class="f1"><label>Portfolio</label>
-        <select id="port-plan"></select>
+        <select id="port-plan" onchange="onTickerInput(document.getElementById('port-ticker').value)"></select>
       </div>
       <div class="f1"><label>Shares held</label><input id="port-shares" type="number" min="0" placeholder="0"/></div>
       <div class="f1"><label>Current price (₦)</label><input id="port-price" type="number" min="0" step="0.01" placeholder="Auto or enter"/></div>
@@ -456,7 +470,7 @@ button:hover{background:var(--bg)}
       </div>
       <div style="flex:0"><button class="btn-primary" onclick="addHolding()">Save ↗</button></div>
     </div>
-    <div class="hint">Sector and current price auto-fill from saved holdings when a ticker is selected. DCA is calculated from purchase records.</div>
+    <div class="hint">Sector and current price auto-fill from saved holdings when a ticker is selected. DCA is calculated from purchase records for that portfolio. The same stock can be held in more than one portfolio — pick the Portfolio first, then enter the ticker; if it's not already held there, a new position is created instead of overwriting another portfolio's shares.</div>
     <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
       <button class="btn-green" onclick="syncAndReport()">🔄 Sync from purchases</button>
       <span id="sync-result" style="font-size:11px;color:var(--green);font-weight:500"></span>
@@ -947,7 +961,16 @@ button:hover{background:var(--bg)}
     </div>
     <div class="row">
       <div class="f1"><label>Date</label><input id="pur-date" type="date"/></div>
-      <div class="f15"><label>Stock</label><input id="pur-stock" list="ngx-list2" placeholder="e.g. GTCO"/><datalist id="ngx-list2"></datalist></div>
+      <div class="f15"><label>Stock</label><input id="pur-stock" list="ngx-list2" placeholder="e.g. GTCO" oninput="onPurStockInput(this.value)"/><datalist id="ngx-list2"></datalist></div>
+      <div class="f1"><label>Portfolio</label>
+        <select id="pur-plan"></select>
+      </div>
+      <div class="f1"><label>Type</label>
+        <select id="pur-type">
+          <option value="buy">Buy</option>
+          <option value="sell">Sell</option>
+        </select>
+      </div>
       <div class="f1"><label>Units</label><input id="pur-units" type="number" min="0" placeholder="0"/></div>
       <div class="f1"><label>Price (₦)</label><input id="pur-price" type="number" min="0" step="0.01" placeholder="0.00"/></div>
       <div class="f1"><label>Charges (₦)</label><input id="pur-charges" type="number" min="0" step="0.01" placeholder="0.00"/></div>
@@ -965,6 +988,7 @@ button:hover{background:var(--bg)}
         <button class="btn-primary" id="pur-submit-btn" onclick="addPurchase()">Add ↗</button>
       </div>
     </div>
+    <div class="hint">Portfolio determines which holding this purchase feeds — buy the same stock under two different portfolios (e.g. MTNN for both Long-Term and Short-Term) by recording each batch of units with its own Portfolio selection. Type: Sell records reduce shares held (and are used to compute realised gains) instead of adding to the position.</div>
     <input type="hidden" id="pur-edit-id"/>
   </div>
 
@@ -989,16 +1013,16 @@ button:hover{background:var(--bg)}
       </div>
     </div>
     <div class="row">
-      <div class="f15"><label>Stock</label><input id="div-stock" list="ngx-list3" placeholder="e.g. ZENITHBANK"/><datalist id="ngx-list3"></datalist></div>
+      <div class="f15"><label>Stock</label><input id="div-stock" list="ngx-list3" placeholder="e.g. ZENITHBANK" oninput="updateDivAutoCalc()"/><datalist id="ngx-list3"></datalist></div>
       <div class="f1"><label>Year</label><input id="div-year" type="number" value="2026" min="2000"/></div>
-      <div class="f1"><label>DPS (₦)</label><input id="div-dps" type="number" min="0" step="0.001" placeholder="0.000" oninput="updateDivWHTPreview()"/></div>
-      <div class="f1"><label>Qual. Date</label><input id="div-qual" type="date"/></div>
+      <div class="f1"><label>DPS (₦)</label><input id="div-dps" type="number" min="0" step="0.001" placeholder="0.000" oninput="updateDivAutoCalc()"/></div>
+      <div class="f1"><label>Qual. Date</label><input id="div-qual" type="date" onchange="updateDivAutoCalc()"/></div>
       <div class="f1"><label>Payment Date</label><input id="div-pay" type="date"/></div>
     </div>
     <div class="row">
       <div class="f1"><label>WHT (%)</label><input id="div-wht-pct" type="number" min="0" step="0.01" value="10" oninput="updateDivWHTPreview()"/></div>
       <div class="f1"><label>WHT amount (₦)</label><input id="div-wht-amt" type="number" min="0" step="0.01" placeholder="Auto-calculated"/></div>
-      <div class="f1"><label>Gross amount (₦)</label><input id="div-gross" type="number" min="0" step="0.01" placeholder="0.00" oninput="updateDivWHTPreview()"/></div>
+      <div class="f1"><label>Gross amount (₦)</label><input id="div-gross" type="number" min="0" step="0.01" placeholder="Auto-calculated" oninput="updateDivWHTPreview()"/></div>
       <div class="f1"><label>Net amt received (₦)</label><input id="div-received" type="number" min="0" step="0.01" placeholder="Auto-calculated"/></div>
       <div class="f1"><label>Status</label>
         <select id="div-status">
@@ -1009,7 +1033,7 @@ button:hover{background:var(--bg)}
       </div>
       <div style="flex:0"><button class="btn-primary" id="div-submit-btn" onclick="saveDividend()">Save ↗</button></div>
     </div>
-    <div class="hint">WHT amount and net received auto-calculate from Gross × WHT% — you can still edit either manually afterward if the actual figures differ.</div>
+    <div class="hint" id="div-shares-hint">Gross amount auto-calculates from shares held as of the Qual. Date × DPS; WHT amount and net received then auto-calculate from Gross × WHT%. You can still edit any of these manually afterward if the actual figures differ.</div>
     <input type="hidden" id="div-edit-id"/>
   </div>
   <div class="card">
@@ -1094,11 +1118,11 @@ button:hover{background:var(--bg)}
     </div>
     <div class="row">
       <div class="f15"><label>Stock (from holdings)</label>
-        <input id="proj-stock" list="proj-holdings-list" placeholder="e.g. MTNN"/>
+        <input id="proj-stock" list="proj-holdings-list" placeholder="e.g. MTNN" oninput="onProjStockInput(this.value)"/>
         <datalist id="proj-holdings-list"></datalist>
       </div>
       <div class="f1"><label>Portfolio</label>
-        <select id="proj-plan">
+        <select id="proj-plan" disabled style="background:var(--bg);color:var(--ink3)">
           <option value="LT">Long-Term</option>
           <option value="MT">Medium-Term</option>
           <option value="ST">Short-Term</option>
@@ -1108,7 +1132,8 @@ button:hover{background:var(--bg)}
       <div class="f1"><label>Target shares</label><input id="proj-target" type="number" min="0" placeholder="10000"/></div>
       <div style="flex:0"><button class="btn-primary" id="proj-submit-btn" onclick="saveProjection()">Save ↗</button></div>
     </div>
-    <input type="hidden" id="proj-edit-stock"/>
+    <div class="hint">Portfolio only offers the portfolios this stock is actually held in on Holdings — it locks to that one automatically when there's just one, and can't be set to a portfolio the stock isn't held in. To also track it in another portfolio, add it there under Holdings first, then set a target for that portfolio here.</div>
+    <input type="hidden" id="proj-edit-key"/>
   </div>
   <div id="projection-sections"></div>
 </div>
@@ -1433,13 +1458,7 @@ function migrateFromOldKey(){
 const today = new Date().toISOString().split('T')[0];
 
 let holdings    = []; // {ticker, plan, shares, price, sector, company}
-let brokers     = [  // {id, name, code, cscs}
-  {id:'brk_1', name:'I-One Securities', code:'I-One',     cscs:'130344253'},
-  {id:'brk_2', name:'ARM Securities',   code:'ARM',       cscs:'130728894'},
-  {id:'brk_3', name:'ATLASS Portfolio', code:'ATLASS',    cscs:'131859556'},
-  {id:'brk_4', name:'Coronation Securities', code:'Coronation', cscs:'131848985'},
-  {id:'brk_5', name:'Trove Finance',    code:'Trove',     cscs:''},
-];
+let brokers     = []; // cleared — no sample broker register auto-injected
 let portfolios  = [  // {id, name, code, purpose, color}
   {id:'pf_1', name:'Long-Term (Retirement)', code:'LT', purpose:'Core retirement holdings — 10+ year horizon', color:'#1558a8'},
   {id:'pf_2', name:'Medium-Term',            code:'MT', purpose:'3–7 year growth targets', color:'#1a7f4b'},
@@ -1449,19 +1468,8 @@ let portfolios  = [  // {id, name, code, purpose, color}
 let formerHoldings = []; // {ticker, company, sector, totalInvested, soldAt, plan}
 
 // Mutual fund register — separate from mfBalances (balance store)
-let funds = [
-  {id:'fund_1',  date:'2024-01-01', name:'ARM Money Market Fund',        code:'ARMMMF',       type:'MMF',    broker:'ARM',       note:'Daily liquidity', active:true},
-  {id:'fund_2',  date:'2024-01-01', name:'GT Money Market Fund',         code:'GTMMF',        type:'MMF',    broker:'GTFM',      note:'', active:true},
-  {id:'fund_3',  date:'2024-01-01', name:'FCMB Legacy Money Market Fund',code:'FCMBLMMF',     type:'MMF',    broker:'FCMB',      note:'', active:true},
-  {id:'fund_4',  date:'2024-01-01', name:'Coronation Money Market Fund', code:'CoronationMMF',type:'MMF',    broker:'Coronation',note:'', active:true},
-  {id:'fund_5',  date:'2024-01-01', name:'FCMB Legacy Equity Fund',      code:'FCMBLEF',      type:'Equity', broker:'FCMB',      note:'', active:true},
-  {id:'fund_6',  date:'2024-01-01', name:'ARM Hallal Balanced Fund',     code:'ARMHBF',       type:'Equity', broker:'ARM',       note:'Shariah-compliant', active:true},
-  {id:'fund_7',  date:'2024-01-01', name:'ARM Aggressive Growth Fund',   code:'ARMAGF',       type:'Equity', broker:'ARM',       note:'', active:true},
-  {id:'fund_8',  date:'2024-01-01', name:'ARM Discovery Balanced Fund',  code:'ARMDBF',       type:'Equity', broker:'ARM',       note:'', active:true},
-  {id:'fund_9',  date:'2024-01-01', name:'Absolute Equity Fund',         code:'AEF',          type:'Equity', broker:'ARM',       note:'', active:true},
-  {id:'fund_10', date:'2024-01-01', name:'TrustBanc Fund',               code:'TrustBanc',    type:'Equity', broker:'',          note:'', active:true},
-];
-let purchases   = [{"id":"xl_1","date":"2025-08-01","stock":"ACCESSCORP","units":1000,"price":28.4,"charges":530.77,"totalAmt":28930.77,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_2","date":"2025-08-05","stock":"ACCESSCORP","units":2000,"price":27.55,"charges":1025.72,"totalAmt":56125.72,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_3","date":"2026-06-08","stock":"ACCESSCORP","units":3000,"price":24.65,"charges":1360.51,"totalAmt":75310.51,"broker":"I-One","cscs":"130344253","source":"from ARM MMF","note":""},{"id":"xl_4","date":"2025-07-30","stock":"AIICO","units":3000,"price":2.25,"charges":0,"totalAmt":6750,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_5","date":"2025-09-18","stock":"AIICO","units":7000,"price":4.0,"charges":237.55,"totalAmt":28237.55,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_6","date":"2025-01-28","stock":"ARADEL","units":200,"price":540,"charges":0,"totalAmt":108000,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_7","date":"2025-02-07","stock":"ARADEL","units":100,"price":554.5,"charges":0,"totalAmt":55450,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_8","date":"2025-04-23","stock":"ARADEL","units":20,"price":450,"charges":0,"totalAmt":9000,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_9","date":"2025-05-15","stock":"ARADEL","units":150,"price":479,"charges":0,"totalAmt":71850,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_10","date":"2025-05-28","stock":"ARADEL","units":150,"price":498,"charges":0,"totalAmt":74700,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_11","date":"2025-07-17","stock":"ARADEL","units":30,"price":523,"charges":0,"totalAmt":15690,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_12","date":"2025-07-25","stock":"ARADEL","units":50,"price":507,"charges":0,"totalAmt":25350,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_13","date":"2025-08-21","stock":"ARADEL","units":21,"price":500,"charges":198.94,"totalAmt":10698.94,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_14","date":"2026-01-08","stock":"ARADEL","units":79,"price":718.5,"charges":1043.74,"totalAmt":57805.24,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_15","date":"2026-02-04","stock":"ARADEL","units":100,"price":809,"charges":1181.4,"totalAmt":82081.4,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_16","date":"2026-02-23","stock":"ARADEL","units":100,"price":1035,"charges":1899.64,"totalAmt":105399.64,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_17","date":"2026-04-20","stock":"ARADEL","units":100,"price":1370,"charges":1997.65,"totalAmt":138997.65,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_18","date":"2025-07-25","stock":"BUACEMENT","units":77,"price":128.8,"charges":0,"totalAmt":9917.6,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_19","date":"2025-07-31","stock":"BUACEMENT","units":223,"price":126,"charges":413.12,"totalAmt":28511.12,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_20","date":"2025-07-30","stock":"CHAMS","units":2000,"price":3.0,"charges":0,"totalAmt":6000,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_21","date":"2025-09-19","stock":"CHAMS","units":3000,"price":3.29,"charges":90.7,"totalAmt":9960.7,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_22","date":"2025-09-23","stock":"CHAMS","units":5000,"price":3.28,"charges":143.59,"totalAmt":16543.59,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_23","date":"2026-01-08","stock":"CHAMS","units":4000,"price":3.9,"charges":130.66,"totalAmt":15730.66,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_24","date":"2026-04-10","stock":"CHAMS","units":12900,"price":3.24,"charges":345,"totalAmt":42141,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_25","date":"2026-04-22","stock":"CHAMS","units":26475,"price":3.15,"charges":688.42,"totalAmt":84084.67,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_26","date":"2026-06-03","stock":"CHAMS","units":25000,"price":4.0,"charges":816.45,"totalAmt":100816.45,"broker":"ATLASS","cscs":"131859556","source":"gift from Didier","note":""},{"id":"xl_27","date":"2025-09-23","stock":"CONHALLPLC","units":10000,"price":3.8,"charges":318.55,"totalAmt":38318.55,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_28","date":"2026-01-08","stock":"CONHALLPLC","units":4000,"price":4.6,"charges":153.34,"totalAmt":18553.34,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_29","date":"2025-07-23","stock":"CUTIX","units":2000,"price":4.05,"charges":0,"totalAmt":8100,"broker":"Trove","cscs":"","source":"","note":""},{"id":"xl_30","date":"2025-07-29","stock":"CUTIX","units":1000,"price":3.96,"charges":97.21,"totalAmt":4057.21,"broker":"Trove","cscs":"","source":"","note":""},{"id":"xl_31","date":"2025-08-01","stock":"CUTIX","units":1800,"price":3.89,"charges":168.66,"totalAmt":7170.66,"broker":"Trove","cscs":"","source":"","note":""},{"id":"xl_32","date":"2025-08-29","stock":"CUTIX","units":1341,"price":3.7,"charges":120.73,"totalAmt":5082.43,"broker":"Trove","cscs":"","source":"","note":""},{"id":"xl_33","date":"2026-01-08","stock":"CUTIX","units":6417,"price":3.4,"charges":181.02,"totalAmt":21998.82,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_34","date":"2025-07-23","stock":"DAARCOMM","units":5000,"price":0.81,"charges":0,"totalAmt":4050,"broker":"Trove","cscs":"","source":"","note":""},{"id":"xl_35","date":"2025-07-29","stock":"DAARCOMM","units":3400,"price":0.94,"charges":79.27,"totalAmt":3275.27,"broker":"Trove","cscs":"","source":"","note":""},{"id":"xl_36","date":"2025-07-25","stock":"DANGCEM","units":20,"price":489,"charges":0,"totalAmt":9780,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_37","date":"2025-10-13","stock":"DANGCEM","units":115,"price":583,"charges":979.51,"totalAmt":68024.51,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_38","date":"2025-10-13","stock":"DANGCEM","units":15,"price":583,"charges":131.32,"totalAmt":8876.32,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_39","date":"2025-07-25","stock":"DANGSUGAR","units":150,"price":58,"charges":0,"totalAmt":8700,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_40","date":"2025-08-01","stock":"DANGSUGAR","units":350,"price":69,"charges":355.68,"totalAmt":24505.68,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_41","date":"2025-07-22","stock":"ELLAHLAKES","units":230,"price":11.1,"charges":0,"totalAmt":2553,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_42","date":"2025-07-24","stock":"ELLAHLAKES","units":770,"price":9.86,"charges":0,"totalAmt":7592.2,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_43","date":"2025-08-01","stock":"ELLAHLAKES","units":42,"price":9.39,"charges":10.04,"totalAmt":404.42,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_44","date":"2025-08-01","stock":"ELLAHLAKES","units":483,"price":9.37,"charges":70.15,"totalAmt":4595.86,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_45","date":"2025-08-01","stock":"ELLAHLAKES","units":197,"price":9.35,"charges":31.1,"totalAmt":1873.05,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_46","date":"2025-10-07","stock":"ELLAHLAKES","units":914,"price":14.45,"charges":196.17,"totalAmt":13403.47,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_47","date":"2025-10-13","stock":"ELLAHLAKES","units":4364,"price":14.2,"charges":909.66,"totalAmt":62878.46,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_48","date":"2025-10-23","stock":"ELLAHLAKES","units":13675,"price":12.95,"charges":2584.67,"totalAmt":179675.92,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_49","date":"2026-01-14","stock":"ELLAHLAKES","units":154,"price":17.6,"charges":48.03,"totalAmt":2758.43,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_50","date":"2026-02-04","stock":"ELLAHLAKES","units":1171,"price":14.85,"charges":257.31,"totalAmt":17646.66,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_51","date":"2026-03-04","stock":"ELLAHLAKES","units":4000,"price":11,"charges":644.5,"totalAmt":44644.5,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_52","date":"2026-04-21","stock":"ELLAHLAKES","units":253,"price":10.55,"charges":43.14,"totalAmt":2712.29,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_53","date":"2025-07-23","stock":"ETI","units":500,"price":33.5,"charges":0,"totalAmt":16750,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_54","date":"2025-07-25","stock":"ETI","units":500,"price":33,"charges":0,"totalAmt":16500,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_55","date":"2026-01-08","stock":"ETI","units":105,"price":45,"charges":73.05,"totalAmt":4798.05,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_56","date":"2026-01-08","stock":"ETI","units":895,"price":45,"charges":590.3,"totalAmt":40865.3,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_57","date":"2026-02-04","stock":"ETI","units":500,"price":47,"charges":346.23,"totalAmt":23846.23,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_58","date":"2024-08-31","stock":"FCMB","units":10000,"price":7.3,"charges":0,"totalAmt":73000,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_59","date":"2024-08-03","stock":"FIDELITYBK","units":25000,"price":9.75,"charges":0,"totalAmt":243750,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_60","date":"2024-08-09","stock":"GTCO","units":2250,"price":44.5,"charges":0,"totalAmt":100125,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_61","date":"2025-08-01","stock":"GTCO","units":250,"price":101.5,"charges":373.51,"totalAmt":25748.51,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_62","date":"2026-01-08","stock":"GTCO","units":500,"price":98,"charges":717.25,"totalAmt":49717.25,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_63","date":"2026-04-29","stock":"GTCO","units":1480,"price":129.9,"charges":2801.57,"totalAmt":195053.57,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_64","date":"2026-05-04","stock":"GTCO","units":230,"price":135,"charges":456.08,"totalAmt":31506.08,"broker":"ARM","cscs":"130728894","source":"GTCO dividends","note":""},{"id":"xl_65","date":"2026-05-06","stock":"GTCO","units":1400,"price":133,"charges":2713.51,"totalAmt":188913.51,"broker":"ARM","cscs":"130728894","source":"from ARM MMF","note":""},{"id":"xl_66","date":"2025-08-01","stock":"JAIZBANK","units":1000,"price":3.81,"charges":41.61,"totalAmt":3851.61,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_67","date":"2025-08-01","stock":"JAIZBANK","units":1000,"price":3.86,"charges":42.02,"totalAmt":3902.02,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_68","date":"2025-10-13","stock":"JAIZBANK","units":3000,"price":4.45,"charges":118.89,"totalAmt":13468.89,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_69","date":"2023-03-09","stock":"MTNN","units":3675,"price":169,"charges":0,"totalAmt":621075,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_70","date":"2025-07-28","stock":"MTNN","units":25,"price":423.5,"charges":0,"totalAmt":10587.5,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_71","date":"2026-01-08","stock":"MTNN","units":300,"price":551,"charges":3031.36,"totalAmt":168331.36,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_72","date":"2026-02-26","stock":"MTNN","units":120,"price":749,"charges":1650.23,"totalAmt":91530.23,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_73","date":"2026-05-06","stock":"MTNN","units":60,"price":805,"charges":897.09,"totalAmt":49197.09,"broker":"I-One","cscs":"130344253","source":"dividends","note":""},{"id":"xl_74","date":"2026-04-24","stock":"MTNN","units":600,"price":815,"charges":8959.11,"totalAmt":497959.11,"broker":"I-One","cscs":"130344253","source":"from ARM MMF","note":""},{"id":"xl_75","date":"2026-06-05","stock":"MTNN","units":220,"price":788,"charges":3180.96,"totalAmt":176540.96,"broker":"I-One","cscs":"130344253","source":"from ARM MMF","note":""},{"id":"xl_76","date":"2026-06-09","stock":"MTNN","units":300,"price":798,"charges":4434.41,"totalAmt":243834.41,"broker":"I-One","cscs":"130344253","source":"from ARM MMF","note":""},{"id":"xl_77","date":"2025-07-25","stock":"PRESCO","units":5,"price":1574.9,"charges":0,"totalAmt":7874.5,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_78","date":"2025-07-25","stock":"PRESCO","units":3,"price":1574.9,"charges":0,"totalAmt":4724.7,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_79","date":"2025-07-31","stock":"PRESCO","units":42,"price":1520,"charges":933.17,"totalAmt":64773.17,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_80","date":"2025-10-13","stock":"PRESCO","units":20,"price":1420,"charges":417.22,"totalAmt":28817.22,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_81","date":"2025-11-26","stock":"PRESCO","units":11,"price":1420,"charges":0,"totalAmt":15620,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_82","date":"2025-11-26","stock":"PRESCO","units":165,"price":1420,"charges":0,"totalAmt":234300,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_83","date":"2026-01-14","stock":"PRESCO","units":32,"price":1595,"charges":746.93,"totalAmt":51786.93,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_84","date":"2026-01-29","stock":"PRESCO","units":12,"price":1609,"charges":289.53,"totalAmt":19597.53,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_85","date":"2026-02-04","stock":"PRESCO","units":10,"price":1611,"charges":238.7,"totalAmt":16348.7,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_86","date":"2026-02-25","stock":"PRESCO","units":65,"price":2200,"charges":2084.95,"totalAmt":145084.95,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_87","date":"2026-02-26","stock":"PRESCO","units":135,"price":2083.9,"charges":4106.21,"totalAmt":285432.71,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_88","date":"2026-03-31","stock":"PRESCO","units":200,"price":1856,"charges":5405.26,"totalAmt":376605.26,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_89","date":"2026-04-24","stock":"PRESCO","units":100,"price":2000,"charges":2914.3,"totalAmt":202914.3,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_90","date":"2025-07-30","stock":"SEPLAT","units":20,"price":5450,"charges":0,"totalAmt":109000,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_91","date":"2025-08-01","stock":"SEPLAT","units":7,"price":5770,"charges":591.97,"totalAmt":40981.97,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_92","date":"2025-08-01","stock":"SEPLAT","units":3,"price":5770,"charges":256.16,"totalAmt":17566.16,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_93","date":"2025-09-19","stock":"SOVRENIS","units":10000,"price":2.87,"charges":243.22,"totalAmt":28943.22,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_94","date":"2026-01-15","stock":"TANTALIZER","units":6633,"price":2.99,"charges":164.95,"totalAmt":19997.62,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_95","date":"2025-08-01","stock":"TIP","units":300,"price":14.19,"charges":66.24,"totalAmt":4323.24,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_96","date":"2025-08-01","stock":"TIP","units":1700,"price":14,"charges":350.59,"totalAmt":24150.59,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_97","date":"2025-10-07","stock":"TIP","units":1500,"price":13.95,"charges":312.46,"totalAmt":21237.46,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_98","date":"2025-10-13","stock":"TIP","units":4500,"price":13.85,"charges":914.83,"totalAmt":63239.83,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_99","date":"2026-01-15","stock":"TIP","units":99,"price":14.75,"charges":25.54,"totalAmt":1485.79,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_100","date":"2026-01-29","stock":"TIP","units":13,"price":14.7,"charges":7.08,"totalAmt":198.18,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_101","date":"2026-02-04","stock":"TIP","units":400,"price":19.5,"charges":117.79,"totalAmt":7917.79,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_102","date":"2026-02-26","stock":"TIP","units":1458,"price":18.5,"charges":396.76,"totalAmt":27369.76,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_103","date":"2026-03-12","stock":"TIP","units":1030,"price":18.9,"charges":287.54,"totalAmt":19754.54,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_104","date":"2026-03-27","stock":"TIP","units":769,"price":19.95,"charges":231.82,"totalAmt":15573.37,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_105","date":"2026-03-27","stock":"TIP","units":5,"price":19.95,"charges":5.75,"totalAmt":105.5,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_106","date":"2026-04-22","stock":"TIP","units":5000,"price":19.5,"charges":1422.93,"totalAmt":98922.93,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_107","date":"2026-05-07","stock":"TIP","units":6,"price":28,"charges":8.74,"totalAmt":176.74,"broker":"ARM","cscs":"130728894","source":"cash balance","note":""},{"id":"xl_108","date":"2025-08-01","stock":"TRIPPLLEG","units":1000,"price":4.24,"charges":45.09,"totalAmt":4285.09,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_109","date":"2025-09-19","stock":"TRIPPLLEG","units":2000,"price":5.04,"charges":92.39,"totalAmt":10172.39,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_110","date":"2025-10-13","stock":"TRIPPLLEG","units":2200,"price":5.5,"charges":108.76,"totalAmt":12208.76,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_111","date":"2025-11-03","stock":"TRIPPLLEG","units":4690,"price":4.44,"charges":177.27,"totalAmt":21000.87,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_112","date":"2025-07-25","stock":"UBA","units":200,"price":47.05,"charges":0,"totalAmt":9410,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_113","date":"2025-07-31","stock":"UBA","units":300,"price":49.65,"charges":221.03,"totalAmt":15116.03,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_114","date":"2026-01-08","stock":"UBA","units":500,"price":43.6,"charges":321.49,"totalAmt":22121.49,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_115","date":"2026-02-17","stock":"UBA","units":43,"price":48.5,"charges":34.65,"totalAmt":2120.15,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_116","date":"2026-03-10","stock":"UBA","units":457,"price":47,"charges":316.82,"totalAmt":21795.82,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_117","date":"2026-03-30","stock":"UBA","units":147,"price":46.95,"charges":104.72,"totalAmt":7006.37,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_118","date":"2026-04-17","stock":"UBA","units":1470,"price":45.35,"charges":974.27,"totalAmt":67638.77,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_119","date":"2025-08-01","stock":"UNIVINSURE","units":10000,"price":0.76,"charges":182.71,"totalAmt":7782.71,"broker":"Trove","cscs":"","source":"","note":""},{"id":"xl_120","date":"2025-08-01","stock":"UPDC","units":1000,"price":5.05,"charges":51.66,"totalAmt":5101.66,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_121","date":"2025-08-05","stock":"UPDC","units":1530,"price":6.52,"charges":91.55,"totalAmt":10067.15,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_122","date":"2025-09-25","stock":"UPDC","units":2985,"price":6.11,"charges":158.48,"totalAmt":18396.83,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_123","date":"2025-10-13","stock":"UPDC","units":4485,"price":6.55,"charges":259.45,"totalAmt":29636.2,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_124","date":"2025-10-13","stock":"UPDCREIT","units":10000,"price":7.3,"charges":602.05,"totalAmt":73602.05,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_125","date":"2026-01-08","stock":"UPDCREIT","units":4000,"price":8.25,"charges":271.6,"totalAmt":33271.6,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_126","date":"2026-04-30","stock":"UPDCREIT","units":2840,"price":7.2,"charges":378.75,"totalAmt":20826.75,"broker":"Coronation","cscs":"131848985","source":"Ella","note":""},{"id":"xl_127","date":"2026-06-08","stock":"UPDCREIT","units":3971,"price":10.6,"charges":347.4,"totalAmt":42440,"broker":"ATLASS","cscs":"131859556","source":"gift from Didier","note":""},{"id":"xl_128","date":"2026-02-20","stock":"UPDCREIT","units":95,"price":7.55,"charges":17.43,"totalAmt":734.68,"broker":"Coronation","cscs":"131848985","source":"","note":""},{"id":"xl_129","date":"2025-08-08","stock":"VFDGROUP","units":3000,"price":13,"charges":727.26,"totalAmt":39727.26,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_130","date":"2025-08-25","stock":"VFDGROUP","units":37,"price":11.9,"charges":12.46,"totalAmt":452.76,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_131","date":"2026-01-14","stock":"VFDGROUP","units":353,"price":12,"charges":81.88,"totalAmt":4317.88,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_132","date":"2026-02-23","stock":"VFDGROUP","units":140,"price":13,"charges":37.63,"totalAmt":1857.63,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_133","date":"2026-06-08","stock":"VFDGROUP","units":1045,"price":10.4,"charges":205.31,"totalAmt":11073.31,"broker":"I-One","cscs":"130344253","source":"from ARM MMF","note":""},{"id":"xl_134","date":"2026-04-27","stock":"VFDGROUP","units":250,"price":10.2,"charges":51,"totalAmt":2601,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_135","date":"2025-01-16","stock":"HBMNG","units":500,"price":70,"charges":0,"totalAmt":35000,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_136","date":"2025-01-27","stock":"HBMNG","units":500,"price":70.95,"charges":0,"totalAmt":35475,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_137","date":"2026-01-08","stock":"HBMNG","units":200,"price":147,"charges":432.07,"totalAmt":29832.07,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_138","date":"2026-03-31","stock":"HBMNG","units":300,"price":209,"charges":916.59,"totalAmt":63616.59,"broker":"ARM","cscs":"130728894","source":"","note":""},{"id":"xl_139","date":"2026-05-07","stock":"HBMNG","units":21,"price":340,"charges":110.19,"totalAmt":7250.19,"broker":"ARM","cscs":"130728894","source":"dividends","note":""},{"id":"xl_140","date":"2025-08-01","stock":"WAPIC","units":2000,"price":2.4,"charges":49.63,"totalAmt":4849.63,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_141","date":"2025-09-19","stock":"WAPIC","units":3000,"price":3.13,"charges":86.81,"totalAmt":9476.81,"broker":"ATLASS","cscs":"131859556","source":"","note":""},{"id":"xl_142","date":"2024-09-01","stock":"ZENITHBANK","units":5000,"price":36.5,"charges":0,"totalAmt":182500,"broker":"I-One","cscs":"130344253","source":"","note":""},{"id":"xl_143","date":"2026-05-07","stock":"ZENITHBANK","units":300,"price":127,"charges":704.01,"totalAmt":38804.01,"broker":"I-One","cscs":"130344253","source":"dividends","note":""},{"id":"xl_144","date":"2026-05-07","stock":"CHAMS","units":5134,"price":3.1,"charges":135.36,"totalAmt":16050.76,"broker":"ATLASS","cscs":"131859556","source":"","note":""}]; // seeded from Excel — overridden by localStorage if present
+let funds = []; // cleared — no sample fund register auto-injected
+let purchases   = []; // cleared — loads from localStorage / cloud sync only
 let dividends   = []; // {stock, year, dps, qualDate, payDate, received, status}
 let mfBalances  = {}; // {fundCode: {balance, type}}
 let mfTxns      = []; // {id, date, fund, type, amount, txnType}
@@ -1702,6 +1710,69 @@ const uid = () => Date.now()+Math.random().toString(36).slice(2,6);
 function chg(val, ref){ const p=(val-ref)/ref*100; const sign=p>=0?'+':''; const cl=p>=0?'tag-green':'tag-red'; return `<span class="tag ${cl}">${sign}${p.toFixed(2)}%</span>`; }
 function setStatus(m){ document.getElementById('save-status').textContent=m; }
 
+/* ─── Generic column sorting (Transactions, Dividends, MF Transactions) ─── */
+let purSort={col:'date',dir:'asc'};
+let divSort={col:'stock',dir:'asc'};
+let mfTxnSort={col:'date',dir:'desc'};
+
+function applySort(rows,state,getters){
+  const g=getters[state.col];
+  if(!g) return rows;
+  const sorted=[...rows].sort((a,b)=>{
+    let va=g.fn(a), vb=g.fn(b);
+    if(g.type==='num'){ va=Number(va)||0; vb=Number(vb)||0; return va-vb; }
+    va=(va??'').toString().toLowerCase(); vb=(vb??'').toString().toLowerCase();
+    if(va<vb) return -1; if(va>vb) return 1; return 0;
+  });
+  return state.dir==='asc'?sorted:sorted.reverse();
+}
+function sortArrow(which,col){
+  const state=which==='pur'?purSort:which==='div'?divSort:mfTxnSort;
+  if(state.col!==col) return '';
+  return state.dir==='asc'?' ▲':' ▼';
+}
+function sortTh(which,col,label,cls){
+  const clsAttr=cls?` class="${cls}"`:'';
+  return `<th${clsAttr} onclick="toggleTableSort('${which}','${col}')" style="cursor:pointer;user-select:none" title="Click to sort">${label}${sortArrow(which,col)}</th>`;
+}
+function toggleTableSort(which,col){
+  const state=which==='pur'?purSort:which==='div'?divSort:mfTxnSort;
+  if(state.col===col){ state.dir=state.dir==='asc'?'desc':'asc'; }
+  else { state.col=col; state.dir='asc'; }
+  if(which==='pur') renderPurchases();
+  else if(which==='div') renderDividends();
+  else renderMFTransactions();
+}
+const PUR_SORT_GETTERS={
+  date:{type:'str',fn:p=>p.date||''},
+  stock:{type:'str',fn:p=>p.stock||''},
+  plan:{type:'str',fn:p=>p.plan||''},
+  type:{type:'str',fn:p=>p.type||'buy'},
+  units:{type:'num',fn:p=>p.units||0},
+  price:{type:'num',fn:p=>p.price||0},
+  charges:{type:'num',fn:p=>p.charges||0},
+  totalAmt:{type:'num',fn:p=>p.totalAmt||0},
+  broker:{type:'str',fn:p=>p.broker||''},
+};
+const DIV_SORT_GETTERS={
+  stock:{type:'str',fn:d=>d.stock||''},
+  shares:{type:'num',fn:d=>getSharesAsOf(d.stock,d.qualDate)},
+  dps:{type:'num',fn:d=>d.dps||0},
+  total:{type:'num',fn:d=>(d.dps||0)*getSharesAsOf(d.stock,d.qualDate)},
+  qualDate:{type:'str',fn:d=>d.qualDate||''},
+  payDate:{type:'str',fn:d=>d.payDate||''},
+  whtAmt:{type:'num',fn:d=>d.whtAmt||0},
+  received:{type:'num',fn:d=>d.received||0},
+  status:{type:'str',fn:d=>d.status||''},
+};
+const MF_SORT_GETTERS={
+  date:{type:'str',fn:t=>t.date||''},
+  fund:{type:'str',fn:t=>t.fund||''},
+  type:{type:'str',fn:t=>t.type||''},
+  txnType:{type:'str',fn:t=>t.txnType||''},
+  amount:{type:'num',fn:t=>t.amount||0},
+};
+
 /* ─── Persist ─── */
 /* ═══════════════════════════════════════════
    CLOUD SYNC (Firebase Firestore)
@@ -1822,6 +1893,7 @@ async function pullFromCloud(){
     netWorthMilestones=d.netWorthMilestones||[];
     cashflowTxns=d.cashflowTxns||[]; budgets=d.budgets||[];
     if(d.cfCategories) CF_CATEGORIES=d.cfCategories;
+    migrateDividendIds();
     suppressAutoPush=true;
     save(); // persists pulled data to localStorage (auto-push suppressed for this save)
     suppressAutoPush=false;
@@ -1923,6 +1995,8 @@ function load(){
       mergeSeedBrokers();
       mergeSeedPortfolios();
       migrateTickerRename(); // corporate action: WAPCO -> HBMNG
+      migrateDividendIds();
+      syncProjectionsPlanFromHoldings(); // backward-compat: reconcile any stale projection portfolios
       save(); // persist merged seeds back to localStorage
       setStatus('Loaded — '+purchases.length+' purchases');
     } else {
@@ -1933,9 +2007,11 @@ function load(){
       mergeSeedBrokers();
       mergeSeedPortfolios();
       migrateTickerRename(); // corporate action: WAPCO -> HBMNG
+      migrateDividendIds();
       setStatus('Ready — '+purchases.length+' purchase records loaded');
     }
   } catch(e){ mfBalances=JSON.parse(JSON.stringify(defaultMFBalances)); setStatus('Error: '+e.message); }
+  migratePurchasePlans();
   syncHoldingsFromPurchases();
   recomputeAllMFBalances();
   populateDataLists(); renderAll();
@@ -1972,99 +2048,12 @@ function switchTab(id,btn){
 }
 
 function loadDefaults(){
-  // Pre-load holdings from the workbook data
-  holdings=[
-    {ticker:'MTNN',plan:'LT',shares:5300,price:830,sector:'ICT',company:'MTN Nigeria'},
-    {ticker:'GTCO',plan:'LT',shares:6110,price:130,sector:'Financial Services',company:'Guaranty Trust Holding'},
-    {ticker:'ZENITHBANK',plan:'LT',shares:5300,price:115,sector:'Financial Services',company:'Zenith Bank'},
-    {ticker:'SEPLAT',plan:'LT',shares:30,price:11363.9,sector:'Oil & Gas',company:'Seplat Energy'},
-    {ticker:'PRESCO',plan:'LT',shares:800,price:2300,sector:'Agriculture',company:'Presco Plc'},
-    {ticker:'DANGCEM',plan:'LT',shares:150,price:963,sector:'Industrial Goods',company:'Dangote Cement'},
-    {ticker:'ARADEL',plan:'LT',shares:1100,price:1575,sector:'Oil & Gas',company:'Aradel Holdings'},
-    {ticker:'UBA',plan:'MT',shares:3117,price:39.1,sector:'Financial Services',company:'United Bank for Africa'},
-    {ticker:'ETI',plan:'MT',shares:2500,price:95.2,sector:'Financial Services',company:'Ecobank Transnational'},
-    {ticker:'HBMNG',plan:'MT',shares:1521,price:317.4,sector:'Industrial Goods',company:'HBM Nigeria'},
-    {ticker:'FIDELITYBK',plan:'MT',shares:25000,price:18.2,sector:'Financial Services',company:'Fidelity Bank'},
-    {ticker:'ACCESSCORP',plan:'MT',shares:6000,price:23,sector:'Financial Services',company:'Access Holdings'},
-    {ticker:'UPDCREIT',plan:'MT',shares:20906,price:10,sector:'Construction/Real Estate',company:'UPDC REIT'},
-    {ticker:'TIP',plan:'MT',shares:16780,price:28.1,sector:'Services',company:'Trans-International Plc'},
-    {ticker:'ELLAHLAKES',plan:'ST',shares:26253,price:9,sector:'Agriculture',company:'Ellah Lakes'},
-    {ticker:'VFDGROUP',plan:'ST',shares:4825,price:10.5,sector:'Financial Services',company:'VFD Group'},
-    {ticker:'JAIZBANK',plan:'ST',shares:5000,price:8.1,sector:'Financial Services',company:'Jaiz Bank'},
-    {ticker:'CHAMS',plan:'ST',shares:83509,price:4.02,sector:'ICT',company:'Chams Holding'},
-    {ticker:'CUTIX',plan:'ST',shares:12558,price:2.75,sector:'Industrial Goods',company:'Cutix Plc'},
-    {ticker:'AIICO',plan:'ST',shares:10000,price:4.24,sector:'Financial Services',company:'AIICO Insurance'},
-    {ticker:'FCMB',plan:'ST',shares:10000,price:9.9,sector:'Financial Services',company:'FCMB Group'},
-    {ticker:'BUACEMENT',plan:'WL',shares:300,price:340.2,sector:'Industrial Goods',company:'BUA Cement'},
-    {ticker:'DANGSUGAR',plan:'WL',shares:500,price:70,sector:'Consumer Goods',company:'Dangote Sugar'},
-    {ticker:'TRIPPLLEG',plan:'WL',shares:9890,price:3.69,sector:'Services',company:'Triple Gee'},
-    {ticker:'UNIVINSURE',plan:'WL',shares:10000,price:0.95,sector:'Financial Services',company:'Universal Insurance'},
-    {ticker:'SOVRENIS',plan:'WL',shares:10000,price:2.06,sector:'Financial Services',company:'Sovereign Trust Insurance'},
-    {ticker:'DAARCOMM',plan:'WL',shares:8400,price:1.69,sector:'Services',company:'DAAR Communications'},
-    {ticker:'CONHALLPLC',plan:'WL',shares:14000,price:6.1,sector:'Financial Services',company:'Consolidated Hallmark'},
-    {ticker:'TANTALIZER',plan:'WL',shares:6633,price:4.3,sector:'Services',company:'Tantalizers'},
-    {ticker:'WAPIC',plan:'WL',shares:5000,price:2.38,sector:'Financial Services',company:'WAPIC Insurance'},
-    {ticker:'UPDC',plan:'WL',shares:10000,price:3.6,sector:'Construction/Real Estate',company:'UPDC Plc'},
-  ];
-  projections=[
-    // LONG-TERM
-    {stock:'MTNN',      plan:'LT', targetShares:10000},
-    {stock:'GTCO',      plan:'LT', targetShares:10000},
-    {stock:'ZENITHBANK',plan:'LT', targetShares:10000},
-    {stock:'SEPLAT',    plan:'LT', targetShares:1000},
-    {stock:'PRESCO',    plan:'LT', targetShares:5000},
-    {stock:'DANGCEM',   plan:'LT', targetShares:2000},
-    {stock:'ARADEL',    plan:'LT', targetShares:5000},
-    // MEDIUM-TERM
-    {stock:'UBA',       plan:'MT', targetShares:10000},
-    {stock:'ETI',       plan:'MT', targetShares:10000},
-    {stock:'HBMNG',     plan:'MT', targetShares:10000},
-    {stock:'FIDELITYBK',plan:'MT', targetShares:30000},
-    {stock:'ACCESSCORP',plan:'MT', targetShares:10000},
-    {stock:'UPDCREIT',  plan:'MT', targetShares:50000},
-    {stock:'TIP',       plan:'MT', targetShares:50000},
-    // SHORT-TERM
-    {stock:'ELLAHLAKES',plan:'ST', targetShares:100000},
-    {stock:'VFDGROUP',  plan:'ST', targetShares:100000},
-    {stock:'JAIZBANK',  plan:'ST', targetShares:100000},
-    {stock:'CHAMS',     plan:'ST', targetShares:100000},
-    {stock:'CUTIX',     plan:'ST', targetShares:100000},
-    {stock:'AIICO',     plan:'ST', targetShares:100000},
-    {stock:'FCMB',      plan:'ST', targetShares:100000},
-    {stock:'NGXGROUP',  plan:'ST', targetShares:10000},
-    // WATCHLIST
-    {stock:'BUACEMENT', plan:'WL', targetShares:0},
-    {stock:'DANGSUGAR', plan:'WL', targetShares:0},
-    {stock:'TRIPPLLEG', plan:'WL', targetShares:0},
-    {stock:'UNIVINSURE',plan:'WL', targetShares:0},
-    {stock:'SOVRENIS',  plan:'WL', targetShares:0},
-    {stock:'DAARCOMM',  plan:'WL', targetShares:0},
-    {stock:'CONHALLPLC',plan:'WL', targetShares:0},
-    {stock:'TANTALIZER',plan:'WL', targetShares:0},
-    {stock:'WAPIC',     plan:'WL', targetShares:0},
-    {stock:'UPDC',      plan:'WL', targetShares:0},
-  ];
+  // Cleared — app loads purely from localStorage / cloud sync, no sample data
+  holdings=[];
+  projections=[];
 }
 
-const SEED_PROJECTIONS=[
-  {stock:'MTNN',plan:'LT',targetShares:10000},{stock:'GTCO',plan:'LT',targetShares:10000},
-  {stock:'ZENITHBANK',plan:'LT',targetShares:10000},{stock:'SEPLAT',plan:'LT',targetShares:1000},
-  {stock:'PRESCO',plan:'LT',targetShares:5000},{stock:'DANGCEM',plan:'LT',targetShares:2000},
-  {stock:'ARADEL',plan:'LT',targetShares:5000},
-  {stock:'UBA',plan:'MT',targetShares:10000},{stock:'ETI',plan:'MT',targetShares:10000},
-  {stock:'HBMNG',plan:'MT',targetShares:10000},{stock:'FIDELITYBK',plan:'MT',targetShares:30000},
-  {stock:'ACCESSCORP',plan:'MT',targetShares:10000},{stock:'UPDCREIT',plan:'MT',targetShares:50000},
-  {stock:'TIP',plan:'MT',targetShares:50000},
-  {stock:'ELLAHLAKES',plan:'ST',targetShares:100000},{stock:'VFDGROUP',plan:'ST',targetShares:100000},
-  {stock:'JAIZBANK',plan:'ST',targetShares:100000},{stock:'CHAMS',plan:'ST',targetShares:100000},
-  {stock:'CUTIX',plan:'ST',targetShares:100000},{stock:'AIICO',plan:'ST',targetShares:100000},
-  {stock:'FCMB',plan:'ST',targetShares:100000},{stock:'NGXGROUP',plan:'ST',targetShares:10000},
-  {stock:'BUACEMENT',plan:'WL',targetShares:0},{stock:'DANGSUGAR',plan:'WL',targetShares:0},
-  {stock:'TRIPPLLEG',plan:'WL',targetShares:0},{stock:'UNIVINSURE',plan:'WL',targetShares:0},
-  {stock:'SOVRENIS',plan:'WL',targetShares:0},{stock:'DAARCOMM',plan:'WL',targetShares:0},
-  {stock:'CONHALLPLC',plan:'WL',targetShares:0},{stock:'TANTALIZER',plan:'WL',targetShares:0},
-  {stock:'WAPIC',plan:'WL',targetShares:0},{stock:'UPDC',plan:'WL',targetShares:0},
-];
+const SEED_PROJECTIONS=[]; // cleared — no sample projections auto-injected
 
 function mergeSeedProjections(){
   SEED_PROJECTIONS.forEach(seed=>{
@@ -2074,18 +2063,7 @@ function mergeSeedProjections(){
   });
 }
 
-const SEED_FUNDS=[
-  {id:'fund_1',  date:'2024-01-01', name:'ARM Money Market Fund',         code:'ARMMMF',       type:'MMF',    broker:'ARM',       note:'Daily liquidity', active:true},
-  {id:'fund_2',  date:'2024-01-01', name:'GT Money Market Fund',          code:'GTMMF',        type:'MMF',    broker:'',          note:'', active:true},
-  {id:'fund_3',  date:'2024-01-01', name:'FCMB Legacy Money Market Fund', code:'FCMBLMMF',     type:'MMF',    broker:'FCMB',      note:'', active:true},
-  {id:'fund_4',  date:'2024-01-01', name:'Coronation Money Market Fund',  code:'CoronationMMF',type:'MMF',    broker:'Coronation',note:'', active:true},
-  {id:'fund_5',  date:'2024-01-01', name:'FCMB Legacy Equity Fund',       code:'FCMBLEF',      type:'Equity', broker:'FCMB',      note:'', active:true},
-  {id:'fund_6',  date:'2024-01-01', name:'ARM Hallal Balanced Fund',      code:'ARMHBF',       type:'Equity', broker:'ARM',       note:'Shariah-compliant', active:true},
-  {id:'fund_7',  date:'2024-01-01', name:'ARM Aggressive Growth Fund',    code:'ARMAGF',       type:'Equity', broker:'ARM',       note:'', active:true},
-  {id:'fund_8',  date:'2024-01-01', name:'ARM Discovery Balanced Fund',   code:'ARMDBF',       type:'Equity', broker:'ARM',       note:'', active:true},
-  {id:'fund_9',  date:'2024-01-01', name:'Absolute Equity Fund',          code:'AEF',          type:'Equity', broker:'ARM',       note:'', active:true},
-  {id:'fund_10', date:'2024-01-01', name:'TrustBanc Fund',                code:'TrustBanc',    type:'Equity', broker:'',          note:'', active:true},
-];
+const SEED_FUNDS=[]; // cleared — no sample fund register auto-injected
 
 function mergeSeedFunds(){
   SEED_FUNDS.forEach(seed=>{
@@ -2095,13 +2073,7 @@ function mergeSeedFunds(){
   });
 }
 
-const SEED_BROKERS=[
-  {id:'brk_1', name:'I-One Securities',      code:'I-One',      cscs:'130344253'},
-  {id:'brk_2', name:'ARM Securities',         code:'ARM',        cscs:'130728894'},
-  {id:'brk_3', name:'ATLASS Portfolio',       code:'ATLASS',     cscs:'131859556'},
-  {id:'brk_4', name:'Coronation Securities',  code:'Coronation', cscs:'131848985'},
-  {id:'brk_5', name:'Trove Finance',          code:'Trove',      cscs:''},
-];
+const SEED_BROKERS=[]; // cleared — no sample broker register auto-injected
 
 function mergeSeedBrokers(){
   SEED_BROKERS.forEach(seed=>{
@@ -2170,21 +2142,58 @@ function migrateTickerRename(){
   });
 }
 
-/* ─── DCA calculator ─── */
-function getDCA(ticker){
-  const rows=purchases.filter(p=>p.stock===ticker);
-  if(!rows.length) return null;
-  const totalUnits=rows.reduce((s,p)=>s+(p.units||0),0);
-  const totalCost=rows.reduce((s,p)=>s+(p.totalAmt||0),0);
-  return totalUnits>0?totalCost/totalUnits:0;
+/* Backfills a unique id on any dividend record saved before editing was added,
+   so click-to-edit works on records that predate the id field. */
+function migrateDividendIds(){
+  let changed=false;
+  dividends.forEach(d=>{
+    if(!d.id){ d.id='div_'+uid(); changed=true; }
+  });
+  return changed;
 }
-function getTotalCost(ticker){
-  return purchases.filter(p=>p.stock===ticker).reduce((s,p)=>s+(p.totalAmt||0),0);
+
+/* ─── DCA calculator ───
+   plan is optional: pass it to scope the calc to one specific portfolio's
+   purchases (needed now that the same ticker can be held in more than one
+   portfolio at once); omit it to aggregate across all portfolios. */
+/* Average-cost method: walks a stock's (optionally portfolio-scoped) purchase/sale
+   history in date order, reducing the running cost basis proportionally on each
+   sell rather than just netting unit counts. Also yields realised gain/loss. */
+function computeCostBasis(ticker,plan){
+  const rows=purchases.filter(p=>p.stock===ticker && (plan===undefined || (p.plan||'')===plan))
+                       .slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  let units=0, cost=0, realizedGain=0;
+  rows.forEach(p=>{
+    const isSell=(p.type||'buy')==='sell';
+    if(isSell){
+      const avgCost=units>0?cost/units:0;
+      const sellUnits=Math.min(p.units||0, units);
+      const costRemoved=avgCost*sellUnits;
+      realizedGain+=(p.totalAmt||0)-costRemoved;
+      units-=sellUnits;
+      cost-=costRemoved;
+    } else {
+      units+=(p.units||0);
+      cost+=(p.totalAmt||0);
+    }
+  });
+  if(units<1e-9){units=0;cost=0;}
+  return {units, cost, dca: units>0?cost/units:0, realizedGain};
 }
-function getShares(ticker){
-  // use holdings record if exists, else sum purchases
-  const h=holdings.find(x=>x.ticker===ticker);
-  return h?h.shares:purchases.filter(p=>p.stock===ticker).reduce((s,p)=>s+(p.units||0),0);
+function getDCA(ticker,plan){
+  const cb=computeCostBasis(ticker,plan);
+  return cb.units>0?cb.dca:null;
+}
+function getTotalCost(ticker,plan){
+  return computeCostBasis(ticker,plan).cost;
+}
+function getRealizedGain(ticker,plan){
+  return computeCostBasis(ticker,plan).realizedGain;
+}
+function getShares(ticker,plan){
+  // use holdings record if exists, else derive net units from purchases/sales
+  const h = plan===undefined ? holdings.find(x=>x.ticker===ticker) : holdings.find(x=>x.ticker===ticker&&x.plan===plan);
+  return h?h.shares:computeCostBasis(ticker,plan).units;
 }
 
 /* ─── Settings submenu ─── */
@@ -2258,13 +2267,14 @@ function renderAll(){
 
 /* ── Populate all portfolio dropdowns from the portfolios register ── */
 function populatePortfolioDropdowns(){
-  const ids=['port-plan','proj-plan'];
+  const ids=['port-plan','pur-plan'];
   ids.forEach(id=>{
     const sel=document.getElementById(id);
     if(!sel) return;
     const prev=sel.value;
-    sel.innerHTML=portfolios.map(p=>`<option value="${p.code}">${p.name} (${p.code})</option>`).join('');
-    if(prev&&portfolios.find(p=>p.code===prev)) sel.value=prev;
+    const blank=id==='pur-plan'?'<option value="">— Select portfolio —</option>':'';
+    sel.innerHTML=blank+portfolios.map(p=>`<option value="${p.code}">${p.name} (${p.code})</option>`).join('');
+    if(prev&&(prev===''||portfolios.find(p=>p.code===prev))) sel.value=prev;
   });
 }
 
@@ -2285,21 +2295,23 @@ function populateDataLists(){
 /* ═══════════════════════════════════════════
    FORMER HOLDINGS
 ═══════════════════════════════════════════ */
-function restoreFormerHolding(ticker){
-  if(!confirm(`Restore ${ticker} to Watchlist?\n\nRecord a purchase for this stock first, then sync — or confirm to add it back manually.`)) return;
-  const f=formerHoldings.find(x=>x.ticker===ticker);
+function restoreFormerHolding(ticker,plan){
+  if(!confirm(`Restore ${ticker} (${plan||'WL'}) to that portfolio?\n\nRecord a purchase for this stock first, then sync — or confirm to add it back manually.`)) return;
+  const f=formerHoldings.find(x=>x.ticker===ticker&&(x.plan||'')===(plan||''));
   if(!f) return;
-  // Move back to active holdings under WL
-  formerHoldings=formerHoldings.filter(x=>x.ticker!==ticker);
-  if(!holdings.find(h=>h.ticker===ticker)){
-    holdings.push({ticker:f.ticker,plan:'WL',shares:0,price:f.price||0,sector:f.sector,company:f.company});
+  // Move back to active holdings, restoring its former portfolio (falls back to WL)
+  formerHoldings=formerHoldings.filter(x=>!(x.ticker===ticker&&(x.plan||'')===(plan||'')));
+  const restorePlan=f.plan||'WL';
+  if(!holdings.find(h=>h.ticker===ticker&&h.plan===restorePlan)){
+    holdings.push({ticker:f.ticker,plan:restorePlan,shares:0,price:f.price||0,sector:f.sector,company:f.company});
   }
+  syncProjectionsPlanFromHoldings();
   save(); renderAll();
 }
 
-function clearFormerHolding(ticker){
-  if(!confirm(`Permanently remove ${ticker} from former holdings?`)) return;
-  formerHoldings=formerHoldings.filter(x=>x.ticker!==ticker);
+function clearFormerHolding(ticker,plan){
+  if(!confirm(`Permanently remove ${ticker} (${plan||'—'}) from former holdings?`)) return;
+  formerHoldings=formerHoldings.filter(x=>!(x.ticker===ticker&&(x.plan||'')===(plan||'')));
   save(); renderFormerHoldings();
 }
 
@@ -2312,7 +2324,7 @@ function renderFormerHoldings(){
   }
   let rows='';
   formerHoldings.forEach(f=>{
-    const totalInvested=purchases.filter(p=>p.stock===f.ticker).reduce((s,p)=>s+(p.totalAmt||0),0);
+    const totalInvested=purchases.filter(p=>p.stock===f.ticker&&(p.plan||'')===(f.plan||'')).reduce((s,p)=>s+(p.totalAmt||0),0);
     rows+=`<tr>
       <td><strong>${f.ticker}</strong></td>
       <td style="font-size:12px;color:var(--ink2)">${f.company||'—'}</td>
@@ -2322,8 +2334,8 @@ function renderFormerHoldings(){
       <td style="font-size:11px;color:var(--ink3)">${f.retiredAt||'—'}</td>
       <td class="num">${totalInvested>0?fmt(totalInvested):'—'}</td>
       <td style="display:flex;gap:4px">
-        <button class="btn-sm" onclick="restoreFormerHolding('${f.ticker}')" title="Restore to Watchlist">↩</button>
-        <button class="btn-danger btn-sm" onclick="clearFormerHolding('${f.ticker}')">✕</button>
+        <button class="btn-sm" onclick="restoreFormerHolding('${f.ticker}','${f.plan||''}')" title="Restore to its former portfolio">↩</button>
+        <button class="btn-danger btn-sm" onclick="clearFormerHolding('${f.ticker}','${f.plan||''}')">✕</button>
       </td>
     </tr>`;
   });
@@ -2341,7 +2353,7 @@ function renderFormerHoldings(){
       </div>
     </div>
     <div class="port-section-body" id="port-body-FORMER">
-      <div class="hint" style="padding:8px">Stocks moved here when all purchase records are deleted. ↩ restores to Watchlist.</div>
+      <div class="hint" style="padding:8px">Stocks moved here when all purchase records for that portfolio are deleted. ↩ restores to its former portfolio.</div>
       <div class="tbl-wrap"><table>
         <thead><tr>
           <th>Stock</th><th>Company</th><th>Sector</th><th>Last portfolio</th>
@@ -4520,6 +4532,8 @@ function loadPurchaseForEdit(id){
   if(!p)return;
   document.getElementById('pur-date').value=p.date||'';
   document.getElementById('pur-stock').value=p.stock||'';
+  document.getElementById('pur-plan').value=p.plan||'';
+  document.getElementById('pur-type').value=p.type||'buy';
   document.getElementById('pur-units').value=p.units||'';
   document.getElementById('pur-price').value=p.price||'';
   document.getElementById('pur-charges').value=p.charges||'';
@@ -4551,6 +4565,8 @@ function updatePurchase(){
   if(!id){addPurchase();return;}
   const date=document.getElementById('pur-date').value;
   const stock=document.getElementById('pur-stock').value.trim().toUpperCase();
+  const plan=document.getElementById('pur-plan').value;
+  const type=document.getElementById('pur-type').value||'buy';
   const units=parseFloat(document.getElementById('pur-units').value)||0;
   const price=parseFloat(document.getElementById('pur-price').value)||0;
   const charges=parseFloat(document.getElementById('pur-charges').value)||0;
@@ -4559,9 +4575,10 @@ function updatePurchase(){
   const source=document.getElementById('pur-source').value.trim();
   const note=document.getElementById('pur-note').value.trim();
   if(!date||!stock||!units||!price){alert('Fill in date, stock, units and price.');return;}
-  const totalAmt=units*price+charges;
+  if(!plan){alert('Select a portfolio for this purchase.');return;}
+  const totalAmt = type==='sell' ? (units*price-charges) : (units*price+charges);
   const idx=purchases.findIndex(p=>p.id===id);
-  if(idx>-1) purchases[idx]={id,date,stock,units,price,charges,totalAmt,broker,cscs,source,note};
+  if(idx>-1) purchases[idx]={id,date,stock,plan,type,units,price,charges,totalAmt,broker,cscs,source,note};
   purchases.sort((a,b)=>a.date.localeCompare(b.date));
   cancelEditPurchase();
   syncHoldingsFromPurchases();
@@ -4573,6 +4590,18 @@ function clearPurchaseForm(){
     const el=document.getElementById(id); if(el) el.value='';
   });
   document.getElementById('pur-broker').value='';
+  document.getElementById('pur-plan').value='';
+  document.getElementById('pur-type').value='buy';
+}
+
+/* Suggests the Portfolio for a new purchase: if the ticker is already held in
+   exactly one portfolio, auto-select it; if held in several, leave the choice
+   to the user rather than guessing which one this batch belongs to. */
+function onPurStockInput(val){
+  const ticker=val.trim().toUpperCase();
+  if(!ticker) return;
+  const matches=holdings.filter(h=>h.ticker===ticker);
+  if(matches.length===1) document.getElementById('pur-plan').value=matches[0].plan;
 }
 
 /* ═══════════════════════════════════════════
@@ -4582,8 +4611,8 @@ let chartPlan=null, chartSector=null;
 
 function renderDashboard(){
   const totalMV=holdings.reduce((s,h)=>s+(getLivePrice(h.ticker)||h.price)*h.shares,0);
-  const totalCost=holdings.reduce((s,h)=>s+getTotalCost(h.ticker),0);
-  const totalDivDeclared=dividends.reduce((s,d)=>s+(d.dps*(getShares(d.stock)||0)||0),0);
+  const totalCost=holdings.reduce((s,h)=>s+getTotalCost(h.ticker,h.plan),0);
+  const totalDivDeclared=dividends.reduce((s,d)=>s+(d.dps*(getSharesAsOf(d.stock,d.qualDate)||0)||0),0);
   const totalDivReceived=dividends.reduce((s,d)=>s+(d.received||0),0);
   const activeMFCodes=new Set(funds.filter(f=>f.active!==false).map(f=>f.code));
   const mfMMF=Object.entries(mfBalances).filter(([k,v])=>v.type==='MMF'&&activeMFCodes.has(k)).reduce((s,[,v])=>s+v.balance,0);
@@ -4630,8 +4659,8 @@ function renderDashboard(){
   sorted.forEach(s=>{
     const mv=s.mv;
     const liveP=getLivePrice(s.ticker)||s.price;
-    const dca=getDCA(s.ticker);
-    const cost=getTotalCost(s.ticker);
+    const dca=getDCA(s.ticker,s.plan);
+    const cost=getTotalCost(s.ticker,s.plan);
     const bar=Math.round(mv/maxMV*100);
     h+=`<tr>
       <td><strong>${s.ticker}</strong><div style="height:3px;background:var(--blue-l);border-radius:2px;margin-top:3px"><div style="width:${bar}%;height:100%;background:var(--accent);border-radius:2px"></div></div></td>
@@ -5036,9 +5065,10 @@ function addHolding(){
   const plan=document.getElementById('port-plan').value;
   const sector=document.getElementById('port-sector').value;
   const company=document.getElementById('port-company').value.trim();
-  const idx=holdings.findIndex(h=>h.ticker===ticker);
+  const idx=holdings.findIndex(h=>h.ticker===ticker&&h.plan===plan);
   if(idx>-1){ holdings[idx]={...holdings[idx],shares,price,plan,sector,company}; }
   else{ holdings.push({ticker,plan,shares,price,sector,company}); }
+  syncProjectionsPlanFromHoldings();
   document.getElementById('port-ticker').value='';
   document.getElementById('port-shares').value='';
   document.getElementById('port-price').value='';
@@ -5046,18 +5076,47 @@ function addHolding(){
   save(); renderAll();
 }
 
+/* Heals a projection's portfolio only when its stock is unambiguously held in
+   exactly one portfolio (the pre-multi-portfolio case). Once a stock is split
+   across portfolios, each projection's plan is fixed to what was explicitly
+   chosen for it and is never silently reassigned. */
+function syncProjectionsPlanFromHoldings(){
+  let changed=false;
+  projections.forEach(p=>{
+    const matches=holdings.filter(x=>x.ticker===p.stock);
+    if(matches.length===1 && matches[0].plan && p.plan!==matches[0].plan){
+      p.plan=matches[0].plan; changed=true;
+    }
+  });
+  return changed;
+}
+
 /* ═══════════════════════════════════════════
    SYNC HOLDINGS FROM PURCHASES
 ═══════════════════════════════════════════ */
 function syncHoldingsFromPurchases(){
-  const purTickers=[...new Set(purchases.map(p=>p.stock))];
+  // Group purchases by stock+portfolio — this is what now defines a distinct holding.
+  // Purchases with no plan set (legacy/unassigned rows) are grouped separately and
+  // skipped when creating/updating holdings below, since we can't tell which
+  // portfolio they belong to; migratePurchasePlans() backfills these on load
+  // whenever the ticker maps unambiguously to a single existing portfolio.
+  const groups={};
+  purchases.forEach(p=>{
+    const plan=p.plan||'';
+    const key=p.stock+'|'+plan;
+    if(!groups[key]) groups[key]={stock:p.stock,plan,totalUnits:0};
+    const sign=(p.type||'buy')==='sell'?-1:1;
+    groups[key].totalUnits+=sign*(p.units||0);
+  });
+  const activeKeys=new Set(Object.keys(groups).filter(k=>groups[k].totalUnits>0));
+  const keyOf=h=>h.ticker+'|'+(h.plan||'');
+
   let added=0, updated=0, retired=0;
 
-  // ── Remove holdings whose purchases have all been deleted ──
-  const toRetire = holdings.filter(h=>!purTickers.includes(h.ticker));
+  // ── Retire holdings whose (ticker,portfolio) no longer has matching purchases ──
+  const toRetire = holdings.filter(h=>!activeKeys.has(keyOf(h)));
   toRetire.forEach(h=>{
-    // Move to formerHoldings if not already there
-    if(!formerHoldings.find(f=>f.ticker===h.ticker)){
+    if(!formerHoldings.find(f=>f.ticker===h.ticker&&(f.plan||'')===(h.plan||''))){
       formerHoldings.push({
         ticker:   h.ticker,
         company:  h.company||'',
@@ -5069,27 +5128,24 @@ function syncHoldingsFromPurchases(){
       retired++;
     }
   });
-  // Remove retired tickers from active holdings
-  if(toRetire.length) holdings = holdings.filter(h=>purTickers.includes(h.ticker));
+  if(toRetire.length) holdings = holdings.filter(h=>activeKeys.has(keyOf(h)));
 
-  // ── Re-activate former holding if purchases reappear ──
-  purTickers.forEach(ticker=>{
-    const inFormer = formerHoldings.findIndex(f=>f.ticker===ticker);
-    if(inFormer>-1){
-      // Remove from former list — it will be (re-)added as WL below
-      formerHoldings.splice(inFormer,1);
-    }
+  // ── Re-activate former holding if purchases reappear for that exact portfolio ──
+  activeKeys.forEach(key=>{
+    const {stock,plan}=groups[key];
+    const fi = formerHoldings.findIndex(f=>f.ticker===stock&&(f.plan||'')===plan);
+    if(fi>-1) formerHoldings.splice(fi,1);
   });
 
-  // ── Sync active holdings from purchase totals ──
-  purTickers.forEach(ticker=>{
-    const totalUnits=purchases.filter(p=>p.stock===ticker).reduce((s,p)=>s+(p.units||0),0);
-    if(!totalUnits) return;
+  // ── Sync active holdings from purchase totals, one holding per (ticker,portfolio) ──
+  activeKeys.forEach(key=>{
+    const {stock:ticker,plan,totalUnits}=groups[key];
+    if(!plan) return; // unassigned purchases can't sync until given a portfolio
     const ngxEntry=ngxStocks.find(x=>x.symbol===ticker);
     const company=ngxEntry?ngxEntry.name:'';
     const sector=ngxEntry?ngxEntry.sector:'';
     const livePrice=getLivePrice(ticker)||ngxEntry?.price||0;
-    const idx=holdings.findIndex(h=>h.ticker===ticker);
+    const idx=holdings.findIndex(h=>h.ticker===ticker&&h.plan===plan);
     if(idx>-1){
       const prev=holdings[idx];
       holdings[idx]={
@@ -5101,12 +5157,27 @@ function syncHoldingsFromPurchases(){
       };
       updated++;
     } else {
-      holdings.push({ticker,plan:'WL',shares:totalUnits,price:livePrice,sector,company});
+      holdings.push({ticker,plan,shares:totalUnits,price:livePrice,sector,company});
       added++;
     }
   });
 
   return {added, updated, retired};
+}
+
+/* Backfills purchase.plan for legacy/imported purchase rows that predate the
+   per-portfolio Purchases field. Only auto-assigns when the ticker maps to
+   exactly one existing portfolio in Holdings — ambiguous cases (a ticker
+   already split across portfolios) are left for the user to tag manually. */
+function migratePurchasePlans(){
+  let changed=false;
+  purchases.forEach(p=>{
+    if(!p.plan){
+      const matches=holdings.filter(h=>h.ticker===p.stock);
+      if(matches.length===1){ p.plan=matches[0].plan; changed=true; }
+    }
+  });
+  return changed;
 }
 
 function syncAndReport(){
@@ -5124,14 +5195,26 @@ function syncAndReport(){
 function onTickerInput(val){
   const ticker=val.trim().toUpperCase();
   if(!ticker) return;
-  // Auto-fill from existing holding record
-  const h=holdings.find(x=>x.ticker===ticker);
-  if(h){
-    if(h.sector) document.getElementById('port-sector').value=h.sector;
-    if(h.price)  document.getElementById('port-price').value=h.price;
-    if(h.company) document.getElementById('port-company').value=h.company;
-    if(h.plan)   document.getElementById('port-plan').value=h.plan;
-    if(h.shares) document.getElementById('port-shares').value=h.shares;
+  const matches=holdings.filter(x=>x.ticker===ticker);
+  const selectedPlan=document.getElementById('port-plan').value;
+  const exact=matches.find(x=>x.plan===selectedPlan);
+  if(exact){
+    // Already held in the selected portfolio — full prefill, this Save will edit it
+    if(exact.sector) document.getElementById('port-sector').value=exact.sector;
+    if(exact.price)  document.getElementById('port-price').value=exact.price;
+    if(exact.company) document.getElementById('port-company').value=exact.company;
+    document.getElementById('port-shares').value=exact.shares;
+    return;
+  }
+  if(matches.length){
+    // Held under a different portfolio already — borrow sector/company/price as a
+    // convenience, but leave shares blank so this reads as a fresh entry for the
+    // selected portfolio rather than a copy of another portfolio's position.
+    const any=matches[0];
+    document.getElementById('port-shares').value='';
+    if(any.sector) document.getElementById('port-sector').value=any.sector;
+    if(any.price)  document.getElementById('port-price').value=any.price;
+    if(any.company) document.getElementById('port-company').value=any.company;
     return;
   }
   // Auto-fill sector from NGX sector map
@@ -5172,9 +5255,9 @@ function onTickerInput(val){
   }
 }
 
-function removeHolding(ticker){
-  if(!confirm(`Remove ${ticker} from portfolio?`))return;
-  holdings=holdings.filter(h=>h.ticker!==ticker);
+function removeHolding(ticker,plan){
+  if(!confirm(`Remove ${ticker} (${plan}) from portfolio?`))return;
+  holdings=holdings.filter(h=>!(h.ticker===ticker&&h.plan===plan));
   save(); renderAll();
 }
 
@@ -5187,32 +5270,34 @@ function togglePortSection(id){
 }
 
 /* ── Inline purchase history for a holding row ── */
-function renderHoldingPurchasesHTML(ticker){
-  const rows=purchases.filter(p=>p.stock===ticker).sort((a,b)=>a.date.localeCompare(b.date));
+function renderHoldingPurchasesHTML(ticker,plan){
+  const rows=purchases.filter(p=>p.stock===ticker && (p.plan||'')===(plan||'')).sort((a,b)=>a.date.localeCompare(b.date));
   if(!rows.length){
-    return `<div style="padding:10px 14px;font-size:12px;color:var(--ink3)">No purchase records found for ${ticker}.</div>`;
+    return `<div style="padding:10px 14px;font-size:12px;color:var(--ink3)">No purchase records found for ${ticker} in this portfolio.</div>`;
   }
   let h=`<div style="padding:10px 14px">
-    <div style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px">📋 Purchase history — ${ticker}</div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px">📋 Purchase history — ${ticker} (${plan||'—'})</div>
     <div class="tbl-wrap"><table style="background:var(--surface)">
-      <thead><tr><th>Date</th><th class="num">Units</th><th class="num">Price</th><th class="num">Charges</th><th class="num">Total</th><th>Broker</th><th>CSCS</th><th>Source</th><th>Note</th></tr></thead>
+      <thead><tr><th>Date</th><th>Type</th><th class="num">Units</th><th class="num">Price</th><th class="num">Charges</th><th class="num">Total</th><th>Broker</th><th>CSCS</th><th>Source</th><th>Note</th></tr></thead>
       <tbody>`;
-  let total=0, totalUnits=0;
+  let totalBuy=0, totalSell=0, netUnits=0;
   rows.forEach(p=>{
-    total+=p.totalAmt||0; totalUnits+=p.units||0;
+    const isSell=(p.type||'buy')==='sell';
+    if(isSell){ totalSell+=p.totalAmt||0; netUnits-=p.units||0; } else { totalBuy+=p.totalAmt||0; netUnits+=p.units||0; }
     h+=`<tr>
       <td>${p.date}</td>
+      <td><span class="tag ${isSell?'tag-red':'tag-green'}">${isSell?'Sell':'Buy'}</span></td>
       <td class="num">${Number(p.units).toLocaleString()}</td>
       <td class="num">${fmtN(p.price)}</td>
       <td class="num">${p.charges?fmtN(p.charges):'—'}</td>
-      <td class="num" style="font-weight:600">${fmt(p.totalAmt)}</td>
+      <td class="num" style="font-weight:600;color:${isSell?'var(--red)':'var(--ink)'}">${isSell?'−':''}${fmt(p.totalAmt)}</td>
       <td><span class="tag tag-grey">${p.broker||'—'}</span></td>
       <td style="font-size:11px;color:var(--ink3)">${p.cscs||'—'}</td>
       <td style="font-size:11px;color:var(--ink3)">${p.source||''}</td>
       <td style="font-size:11px;color:var(--ink3)">${p.note||''}</td>
     </tr>`;
   });
-  h+=`<tr class="tfoot"><td>Total (${rows.length})</td><td class="num">${totalUnits.toLocaleString()}</td><td colspan="2"></td><td class="num">${fmt(total)}</td><td colspan="4"></td></tr>`;
+  h+=`<tr class="tfoot"><td>Total (${rows.length})</td><td></td><td class="num">${netUnits.toLocaleString()}</td><td colspan="2"></td><td class="num">Bought ${fmt(totalBuy)} / Sold ${fmt(totalSell)}</td><td colspan="4"></td></tr>`;
   h+='</tbody></table></div></div>';
   return h;
 }
@@ -5249,15 +5334,15 @@ function renderPortfolio(){
 
     let rows='';
     group.forEach(h=>{
-      const dca=getDCA(h.ticker);
+      const dca=getDCA(h.ticker,h.plan);
       const livePrice=getLivePrice(h.ticker)||h.price;
-      const cost=getTotalCost(h.ticker)||h.shares*(dca||livePrice);
+      const cost=getTotalCost(h.ticker,h.plan)||h.shares*(dca||livePrice);
       const mv=h.shares*livePrice;
       const divTotal=dividends.filter(d=>d.stock===h.ticker).reduce((s,d)=>s+(d.dps*(h.shares)||0),0);
       planMV+=mv; planCost+=cost; planDiv+=divTotal;
       const chgStr=getLiveChange(h.ticker);
       const chgNum=parseFloat(chgStr||0);
-      const safeId=h.ticker.replace(/[^A-Za-z0-9]/g,'_');
+      const safeId=(h.ticker+'_'+h.plan).replace(/[^A-Za-z0-9]/g,'_');
       rows+=`<tr class="tr-hover" onclick="toggleHoldingPurchases('${safeId}')" title="Click to view purchase history">
         <td><span class="hp-chevron" id="hp-chev-${safeId}" style="display:inline-block;width:10px;font-size:9px;color:var(--ink3)">▸</span><strong>${h.ticker}</strong>${h.company?`<div style="font-size:10px;color:var(--ink3);margin-left:14px">${h.company}</div>`:''}</td>
         <td><span style="font-size:10px;color:var(--ink2)">${h.sector||'—'}</span></td>
@@ -5268,11 +5353,11 @@ function renderPortfolio(){
         <td class="num" style="font-weight:600">${fmt(mv)}</td>
         <td>${cost>0?chg(mv,cost):'—'}</td>
         <td class="num">${divTotal>0?fmt(divTotal):'—'}</td>
-        <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removeHolding('${h.ticker}')">✕</button></td>
+        <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removeHolding('${h.ticker}','${h.plan}')">✕</button></td>
       </tr>
       <tr id="hp-row-${safeId}" style="display:none">
         <td colspan="10" style="padding:0;background:${hexToRgba(planColors[plan],0.10)}">
-          ${renderHoldingPurchasesHTML(h.ticker)}
+          ${renderHoldingPurchasesHTML(h.ticker,h.plan)}
         </td>
       </tr>`;
     });
@@ -5340,6 +5425,8 @@ let purchaseFilter='ALL';
 function addPurchase(){
   const date=document.getElementById('pur-date').value;
   const stock=document.getElementById('pur-stock').value.trim().toUpperCase();
+  const plan=document.getElementById('pur-plan').value;
+  const type=document.getElementById('pur-type').value||'buy';
   const units=parseFloat(document.getElementById('pur-units').value)||0;
   const price=parseFloat(document.getElementById('pur-price').value)||0;
   const charges=parseFloat(document.getElementById('pur-charges').value)||0;
@@ -5348,8 +5435,13 @@ function addPurchase(){
   const source=document.getElementById('pur-source').value.trim();
   const note=document.getElementById('pur-note').value.trim();
   if(!date||!stock||!units||!price){alert('Fill in date, stock, units and price.');return;}
-  const totalAmt=units*price+charges;
-  purchases.push({id:uid(),date,stock,units,price,charges,totalAmt,broker,cscs,source,note});
+  if(!plan){alert('Select a portfolio for this purchase.');return;}
+  if(type==='sell'){
+    const held=getShares(stock,plan);
+    if(units>held && !confirm(`You're selling ${units.toLocaleString()} units of ${stock} but only ${held.toLocaleString()} are currently held in this portfolio. Record the sale anyway?`)) return;
+  }
+  const totalAmt = type==='sell' ? (units*price-charges) : (units*price+charges);
+  purchases.push({id:uid(),date,stock,plan,type,units,price,charges,totalAmt,broker,cscs,source,note});
   purchases.sort((a,b)=>a.date.localeCompare(b.date));
   clearPurchaseForm();
   syncHoldingsFromPurchases();
@@ -5377,19 +5469,26 @@ function renderPurchases(){
   stocks.forEach(s=>{ pills+=`<button class="pill ${purchaseFilter===s?'sel':''}" onclick="filterPurchases('${s}',this)">${s}</button>`; });
   document.getElementById('purchase-pills').innerHTML=pills;
 
-  const rows=purchaseFilter==='ALL'?purchases:purchases.filter(p=>p.stock===purchaseFilter);
+  let rows=purchaseFilter==='ALL'?purchases:purchases.filter(p=>p.stock===purchaseFilter);
   if(!rows.length){document.getElementById('purchase-table').innerHTML='<div class="empty">No purchases yet.</div>';return;}
+  rows=applySort(rows,purSort,PUR_SORT_GETTERS);
 
-  let html='<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Stock</th><th class="num">Units</th><th class="num">Price</th><th class="num">Charges</th><th class="num">Total</th><th>Broker</th><th>CSCS</th><th>Source</th><th>Note</th><th></th></tr></thead><tbody>';
-  let total=0;
+  let html='<div class="tbl-wrap"><table><thead><tr>'+
+    sortTh('pur','date','Date')+sortTh('pur','stock','Stock')+sortTh('pur','plan','Portfolio')+sortTh('pur','type','Type')+
+    sortTh('pur','units','Units','num')+sortTh('pur','price','Price','num')+sortTh('pur','charges','Charges','num')+sortTh('pur','totalAmt','Total','num')+
+    sortTh('pur','broker','Broker')+'<th>CSCS</th><th>Source</th><th>Note</th><th></th></tr></thead><tbody>';
+  let totalBuy=0, totalSell=0;
   rows.forEach(p=>{
-    total+=p.totalAmt||0;
+    const isSell=(p.type||'buy')==='sell';
+    if(isSell) totalSell+=p.totalAmt||0; else totalBuy+=p.totalAmt||0;
     html+=`<tr class="tr-hover" onclick="loadPurchaseForEdit('${p.id}')" title="Click to edit">
       <td>${p.date}</td><td><strong>${p.stock}</strong></td>
+      <td>${p.plan?`<span class="tag ${planTag(p.plan)}">${p.plan}</span>`:'<span class="tag tag-grey">—</span>'}</td>
+      <td><span class="tag ${isSell?'tag-red':'tag-green'}">${isSell?'Sell':'Buy'}</span></td>
       <td class="num">${Number(p.units).toLocaleString()}</td>
       <td class="num">${fmtN(p.price)}</td>
       <td class="num">${p.charges?fmtN(p.charges):'—'}</td>
-      <td class="num" style="font-weight:600">${fmt(p.totalAmt)}</td>
+      <td class="num" style="font-weight:600;color:${isSell?'var(--red)':'var(--ink)'}">${isSell?'−':''}${fmt(p.totalAmt)}</td>
       <td><span class="tag tag-grey">${p.broker||'—'}</span></td>
       <td style="font-size:11px;color:var(--ink3)">${p.cscs||'—'}</td>
       <td style="font-size:11px;color:var(--ink3)">${p.source||''}</td>
@@ -5397,21 +5496,48 @@ function renderPurchases(){
       <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removePurchase('${p.id}')">✕</button></td>
     </tr>`;
   });
-  html+=`<tr class="tfoot"><td colspan="5">Total (${rows.length} transactions)</td><td class="num">${fmt(total)}</td><td colspan="5"></td></tr>`;
+  html+=`<tr class="tfoot"><td colspan="7">Total (${rows.length} transactions) — Bought ${fmt(totalBuy)} / Sold ${fmt(totalSell)}</td><td class="num">${fmt(totalBuy-totalSell)}</td><td colspan="5"></td></tr>`;
   document.getElementById('purchase-table').innerHTML=html+'</tbody></table></div>';
 
   // Also show DCA summary if filtered
   if(purchaseFilter!=='ALL'){
     const dca=getDCA(purchaseFilter);
-    const totalUnits=rows.reduce((s,p)=>s+(p.units||0),0);
+    const totalUnits=rows.reduce((s,p)=>s+(((p.type||'buy')==='sell'?-1:1)*(p.units||0)),0);
+    const realized=getRealizedGain(purchaseFilter);
     document.getElementById('purchase-table').insertAdjacentHTML('beforeend',
-      `<div class="hint" style="margin-top:8px">📊 <strong>${purchaseFilter}</strong> — Total units: <strong>${totalUnits.toLocaleString()}</strong> &nbsp;|&nbsp; DCA: <strong>${dca?fmt(dca):'—'}</strong></div>`);
+      `<div class="hint" style="margin-top:8px">📊 <strong>${purchaseFilter}</strong> — Net units held: <strong>${totalUnits.toLocaleString()}</strong> &nbsp;|&nbsp; DCA: <strong>${dca?fmt(dca):'—'}</strong>${realized?` &nbsp;|&nbsp; Realised gain/loss: <strong style="color:${realized>=0?'var(--green)':'var(--red)'}">${realized>=0?'+':''}${fmt(realized)}</strong>`:''}</div>`);
   }
 }
 
 /* ═══════════════════════════════════════════
    DIVIDENDS
 ═══════════════════════════════════════════ */
+/* Shares held in a ticker as of a given date, based on purchase records up to
+   and including that date. Falls back to current total shares if no date given. */
+function getSharesAsOf(ticker,dateStr){
+  if(!ticker) return 0;
+  if(!dateStr) return getShares(ticker);
+  return purchases.filter(p=>p.stock===ticker&&p.date&&p.date<=dateStr)
+    .reduce((s,p)=>s+((p.type||'buy')==='sell'?-1:1)*(p.units||0),0);
+}
+
+/* Auto-calculates Gross amount from shares held as of the Qual. Date × DPS,
+   then cascades into the WHT/net-received preview. */
+function updateDivAutoCalc(){
+  const stock=document.getElementById('div-stock').value.trim().toUpperCase();
+  const qualDate=document.getElementById('div-qual').value;
+  const dps=parseFloat(document.getElementById('div-dps').value)||0;
+  const hintEl=document.getElementById('div-shares-hint');
+  if(stock&&qualDate&&dps){
+    const shares=getSharesAsOf(stock,qualDate);
+    document.getElementById('div-gross').value=shares?( shares*dps ).toFixed(2):'';
+    if(hintEl) hintEl.textContent=`${shares.toLocaleString()} qualifying shares as of ${qualDate} × ₦${dps} DPS = gross above. WHT and net received auto-calculate from Gross × WHT%. You can still edit any of these manually.`;
+  } else if(hintEl){
+    hintEl.textContent='Gross amount auto-calculates from shares held as of the Qual. Date × DPS; WHT amount and net received then auto-calculate from Gross × WHT%. You can still edit any of these manually afterward if the actual figures differ.';
+  }
+  updateDivWHTPreview();
+}
+
 function updateDivWHTPreview(){
   const gross=parseFloat(document.getElementById('div-gross').value)||0;
   const pct=parseFloat(document.getElementById('div-wht-pct').value)||0;
@@ -5478,24 +5604,32 @@ function cancelEditDividend(){
   document.getElementById('div-submit-btn').textContent='Save ↗';
 }
 
+function removeDividend(id){
+  if(!confirm('Remove this dividend record?')) return;
+  dividends=dividends.filter(d=>d.id!==id);
+  save(); renderDividends();
+}
+
 function renderDividends(){
   if(!dividends.length){document.getElementById('dividends-table').innerHTML='<div class="empty">No dividend records yet.</div>';return;}
   const totalDeclared=dividends.reduce((s,d)=>{
-    const h=holdings.find(x=>x.ticker===d.stock);
-    return s+(d.dps*(h?h.shares:0)||0);
+    const shares=getSharesAsOf(d.stock,d.qualDate);
+    return s+(d.dps*shares||0);
   },0);
   const totalWHT=dividends.reduce((s,d)=>s+(d.whtAmt||0),0);
   const totalReceived=dividends.reduce((s,d)=>s+(d.received||0),0);
 
-  let html='<div class="tbl-wrap"><table><thead><tr><th>Stock</th><th class="num">Shares</th><th class="num">DPS</th><th class="num">Total Declared</th><th>Qual. Date</th><th>Pay Date</th><th class="num">WHT %</th><th class="num">WHT Amt</th><th class="num">Net Received</th><th>Status</th></tr></thead><tbody>';
-  [...dividends].sort((a,b)=>a.stock.localeCompare(b.stock)).forEach(d=>{
-    const h=holdings.find(x=>x.ticker===d.stock);
-    const shares=h?h.shares:0;
+  let html='<div class="tbl-wrap"><table><thead><tr>'+
+    sortTh('div','stock','Stock')+sortTh('div','shares','Shares','num')+sortTh('div','dps','DPS','num')+sortTh('div','total','Total Declared','num')+
+    sortTh('div','qualDate','Qual. Date')+sortTh('div','payDate','Pay Date')+'<th class="num">WHT %</th>'+sortTh('div','whtAmt','WHT Amt','num')+
+    sortTh('div','received','Net Received','num')+sortTh('div','status','Status')+'<th></th></tr></thead><tbody>';
+  applySort([...dividends],divSort,DIV_SORT_GETTERS).forEach(d=>{
+    const shares=getSharesAsOf(d.stock,d.qualDate);
     const total=d.dps*shares;
     const stCl=d.status==='paid'?'tag-green':d.status==='reinvested'?'tag-blue':'tag-amber';
     html+=`<tr class="tr-hover" onclick="loadDividendForEdit('${d.id}')" title="Click to edit">
       <td><strong>${d.stock}</strong></td>
-      <td class="num">${Number(shares).toLocaleString()}</td>
+      <td class="num" title="Shares held as of Qual. Date">${Number(shares).toLocaleString()}</td>
       <td class="num">${fmtN(d.dps)}</td>
       <td class="num">${total>0?fmt(total):'—'}</td>
       <td>${d.qualDate||'—'}</td>
@@ -5504,9 +5638,10 @@ function renderDividends(){
       <td class="num" style="color:var(--red)">${d.whtAmt>0?fmt(d.whtAmt):'—'}</td>
       <td class="num" style="font-weight:600">${d.received>0?fmt(d.received):'—'}</td>
       <td><span class="tag ${stCl}">${d.status||'pending'}</span></td>
+      <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removeDividend('${d.id}')">✕</button></td>
     </tr>`;
   });
-  html+=`<tr class="tfoot"><td colspan="3">Total</td><td class="num">${fmt(totalDeclared)}</td><td colspan="2"></td><td></td><td class="num" style="color:var(--red)">${fmt(totalWHT)}</td><td class="num">${fmt(totalReceived)}</td><td></td></tr>`;
+  html+=`<tr class="tfoot"><td colspan="3">Total</td><td class="num">${fmt(totalDeclared)}</td><td colspan="2"></td><td></td><td class="num" style="color:var(--red)">${fmt(totalWHT)}</td><td class="num">${fmt(totalReceived)}</td><td colspan="2"></td></tr>`;
   document.getElementById('dividends-table').innerHTML=html+'</tbody></table></div>';
 }
 
@@ -5744,8 +5879,10 @@ function renderMFTransactions(){
   const rows = mfTxnFilter==='ALL' ? mfTxns : mfTxns.filter(t=>t.fund===mfTxnFilter);
   if(!rows.length){el.innerHTML='<div class="empty">No transactions recorded.</div>';return;}
 
-  const sorted = [...rows].sort((a,b)=>b.date.localeCompare(a.date));
-  let h='<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Fund</th><th>Type</th><th>Transaction</th><th class="num">Amount</th><th></th></tr></thead><tbody>';
+  const sorted = applySort(rows,mfTxnSort,MF_SORT_GETTERS);
+  let h='<div class="tbl-wrap"><table><thead><tr>'+
+    sortTh('mf','date','Date')+sortTh('mf','fund','Fund')+sortTh('mf','type','Type')+sortTh('mf','txnType','Transaction')+sortTh('mf','amount','Amount','num')+
+    '<th></th></tr></thead><tbody>';
   sorted.forEach(t=>{
     const tcl=t.txnType==='subscription'?'tag-green':t.txnType==='redemption'?'tag-red':'tag-blue';
     h+=`<tr class="tr-hover" onclick="loadMFForEdit('${t.id}')" title="Click to edit">
@@ -5767,33 +5904,52 @@ function renderMF(){ renderMFSnapshot(); renderMFTransactions(); }
 /* ═══════════════════════════════════════════
    PROJECTION
 ═══════════════════════════════════════════ */
+/* Fills the (disabled) Portfolio field from the stock's current Holdings plan
+   as soon as a valid ticker is entered — Projection can't set this itself. */
+/* Populates the (mostly locked) Portfolio field with only the portfolios this
+   ticker is actually held in — auto-selects and locks it when there's just
+   one; leaves it as a restricted choice (not free-form) when the stock is
+   split across more than one portfolio. */
+function onProjStockInput(val){
+  const ticker=val.trim().toUpperCase();
+  const sel=document.getElementById('proj-plan');
+  if(!sel) return;
+  const matches=holdings.filter(x=>x.ticker===ticker);
+  if(!matches.length){ sel.innerHTML=''; sel.disabled=true; return; }
+  sel.innerHTML=matches.map(h=>{
+    const pf=portfolios.find(x=>x.code===h.plan);
+    return `<option value="${h.plan}">${pf?pf.name:h.plan} (${h.plan})</option>`;
+  }).join('');
+  sel.disabled=matches.length<=1;
+  sel.value=matches[0].plan;
+}
+
 function saveProjection(){
   const stock=document.getElementById('proj-stock').value.trim().toUpperCase();
-  const plan=document.getElementById('proj-plan').value;
-  const targetShares=parseFloat(document.getElementById('proj-target').value)||0;
-  const editStock=document.getElementById('proj-edit-stock').value;
   if(!stock){alert('Enter a stock ticker.');return;}
-  if(editStock){
-    const idx=projections.findIndex(p=>p.stock===editStock);
-    if(idx>-1) projections[idx]={stock,plan,targetShares};
-    cancelEditProjection();
-  } else {
-    const idx=projections.findIndex(p=>p.stock===stock);
-    if(idx>-1) projections[idx]={stock,plan,targetShares};
-    else projections.push({stock,plan,targetShares});
-  }
-  document.getElementById('proj-stock').value='';
-  document.getElementById('proj-target').value='';
+  const matches=holdings.filter(x=>x.ticker===stock);
+  if(!matches.length){alert('That ticker isn\'t in Holdings yet — add it there first, then set a projection target for it.');return;}
+  const plan=document.getElementById('proj-plan').value||matches[0].plan;
+  if(!matches.find(h=>h.plan===plan)){alert('Pick one of the portfolios this stock is actually held in.');return;}
+  const targetShares=parseFloat(document.getElementById('proj-target').value)||0;
+  const editKey=document.getElementById('proj-edit-key').value; // "STOCK|PLAN" of the record being edited
+  const idx = editKey
+    ? projections.findIndex(p=>(p.stock+'|'+p.plan)===editKey)
+    : projections.findIndex(p=>p.stock===stock&&p.plan===plan);
+  if(idx>-1) projections[idx]={stock,plan,targetShares};
+  else projections.push({stock,plan,targetShares});
+  cancelEditProjection();
   save(); renderProjection();
 }
 
-function loadProjectionForEdit(stock){
-  const p=projections.find(x=>x.stock===stock);
+function loadProjectionForEdit(stock,plan){
+  const p=projections.find(x=>x.stock===stock&&x.plan===plan);
   if(!p) return;
   document.getElementById('proj-stock').value=p.stock;
+  onProjStockInput(p.stock);
   document.getElementById('proj-plan').value=p.plan;
   document.getElementById('proj-target').value=p.targetShares;
-  document.getElementById('proj-edit-stock').value=p.stock;
+  document.getElementById('proj-edit-key').value=p.stock+'|'+p.plan;
   document.getElementById('proj-form-title').textContent='Edit projection target';
   document.getElementById('proj-edit-badge').style.display='flex';
   document.getElementById('proj-submit-btn').textContent='Update ↗';
@@ -5803,15 +5959,17 @@ function loadProjectionForEdit(stock){
 function cancelEditProjection(){
   document.getElementById('proj-stock').value='';
   document.getElementById('proj-target').value='';
-  document.getElementById('proj-edit-stock').value='';
+  document.getElementById('proj-edit-key').value='';
+  const sel=document.getElementById('proj-plan');
+  sel.innerHTML=''; sel.disabled=true;
   document.getElementById('proj-form-title').textContent='Add / update projection target';
   document.getElementById('proj-edit-badge').style.display='none';
   document.getElementById('proj-submit-btn').textContent='Save ↗';
 }
 
-function removeProjection(stock){
-  if(!confirm(`Remove projection for ${stock}?`)) return;
-  projections=projections.filter(p=>p.stock!==stock);
+function removeProjection(stock,plan){
+  if(!confirm(`Remove the ${plan} projection for ${stock}?`)) return;
+  projections=projections.filter(p=>!(p.stock===stock&&p.plan===plan));
   save(); renderProjection();
 }
 
@@ -5848,7 +6006,7 @@ function renderProjection(){
 
     let rows='';
     group.forEach(p=>{
-      const h=holdings.find(x=>x.ticker===p.stock);
+      const h=holdings.find(x=>x.ticker===p.stock&&x.plan===p.plan);
       const current=h?h.shares:0;
       const price=getLivePrice(p.stock)||(h?h.price:0)||(ngxStocks.find(x=>x.symbol===p.stock)?.price||0);
       const balance=Math.max(0,p.targetShares-current);
@@ -5857,7 +6015,7 @@ function renderProjection(){
       const targetMV=p.targetShares*price;
       const prog=p.targetShares>0?Math.min(current/p.targetShares,1):1;
       planAmtNeeded+=amtNeeded; planTargetMV+=targetMV; planCurrentMV+=currentMV;
-      rows+=`<tr class="tr-hover" onclick="loadProjectionForEdit('${p.stock}')" title="Click to edit">
+      rows+=`<tr class="tr-hover" onclick="loadProjectionForEdit('${p.stock}','${p.plan}')" title="Click to edit">
         <td><strong>${p.stock}</strong>
           <div style="height:3px;background:var(--bg);border-radius:2px;margin-top:3px">
             <div style="width:${(prog*100).toFixed(0)}%;height:100%;background:var(--green);border-radius:2px"></div>
@@ -5870,7 +6028,7 @@ function renderProjection(){
         <td class="num" style="font-weight:600">${amtNeeded>0?fmtK(amtNeeded):'—'}</td>
         <td class="num">${fmt(currentMV)}</td>
         <td class="num">${fmt(targetMV)}</td>
-        <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removeProjection('${p.stock}')">✕</button></td>
+        <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removeProjection('${p.stock}','${p.plan}')">✕</button></td>
       </tr>`;
     });
     grandAmtNeeded+=planAmtNeeded; grandTargetMV+=planTargetMV; grandCurrentMV+=planCurrentMV;
@@ -6050,6 +6208,7 @@ function importData(){
         if(usdEntry) usdEntry.rateToNGN=d.fxRate.usdToNgn;
       }
       mergeSeedFunds(); mergeSeedBrokers(); mergeSeedPortfolios();
+      migrateDividendIds();
       syncHoldingsFromPurchases();
       save(); renderAll();
       document.getElementById('import-msg').textContent='Import successful.';
