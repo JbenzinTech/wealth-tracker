@@ -202,7 +202,7 @@ button:hover{background:var(--bg)}
     <span></span><span></span><span></span>
   </button>
   <div class="hero-title">Investment Portfolio Tracker</div>
-  <div class="hero-sub">v2.4 &nbsp;·&nbsp; Nigerian Exchange Group</div>
+  <div class="hero-sub">v2.8 &nbsp;·&nbsp; Nigerian Exchange Group</div>
 </div>
 
 <!-- Mobile drawer overlay -->
@@ -969,6 +969,7 @@ button:hover{background:var(--bg)}
         <select id="pur-type">
           <option value="buy">Buy</option>
           <option value="sell">Sell</option>
+          <option value="application">IPO/Rights Application</option>
         </select>
       </div>
       <div class="f1"><label>Units</label><input id="pur-units" type="number" min="0" placeholder="0"/></div>
@@ -988,7 +989,7 @@ button:hover{background:var(--bg)}
         <button class="btn-primary" id="pur-submit-btn" onclick="addPurchase()">Add ↗</button>
       </div>
     </div>
-    <div class="hint">Portfolio determines which holding this purchase feeds — buy the same stock under two different portfolios (e.g. MTNN for both Long-Term and Short-Term) by recording each batch of units with its own Portfolio selection. Type: Sell records reduce shares held (and are used to compute realised gains) instead of adding to the position.</div>
+    <div class="hint">Portfolio determines which holding this purchase feeds — buy the same stock under two different portfolios (e.g. MTNN for both Long-Term and Short-Term) by recording each batch of units with its own Portfolio selection. Type: Sell records reduce shares held (and are used to compute realised gains) instead of adding to the position. IPO/Rights Application records the cash applied for a subscription that hasn't been allotted yet — it's tracked as pending in the ledger below but doesn't affect shares held, DCA, or dividend-qualifying shares until you confirm its allotment.</div>
     <input type="hidden" id="pur-edit-id"/>
   </div>
 
@@ -1037,7 +1038,16 @@ button:hover{background:var(--bg)}
     <input type="hidden" id="div-edit-id"/>
   </div>
   <div class="card">
-    <div class="card-title">Dividends tracker</div>
+    <div class="row" style="margin-bottom:8px">
+      <div class="f1">
+        <label>Year</label>
+        <select id="div-year-filter" onchange="filterDividendsByYear(this.value)">
+          <option value="ALL">All years</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-title">Dividends summary by stock</div>
+    <div class="hint" style="margin-top:0;margin-bottom:8px">Click a stock below to view and edit its individual dividend records.</div>
     <div id="dividends-table"></div>
   </div>
 </div>
@@ -1714,6 +1724,8 @@ function setStatus(m){ document.getElementById('save-status').textContent=m; }
 let purSort={col:'date',dir:'asc'};
 let divSort={col:'stock',dir:'asc'};
 let mfTxnSort={col:'date',dir:'desc'};
+let divFilterStock='ALL';
+let divFilterYear='ALL';
 
 function applySort(rows,state,getters){
   const g=getters[state.col];
@@ -1997,6 +2009,7 @@ function load(){
       migrateTickerRename(); // corporate action: WAPCO -> HBMNG
       migrateDividendIds();
       syncProjectionsPlanFromHoldings(); // backward-compat: reconcile any stale projection portfolios
+      ensureRefundCategory();
       save(); // persist merged seeds back to localStorage
       setStatus('Loaded — '+purchases.length+' purchases');
     } else {
@@ -2008,6 +2021,7 @@ function load(){
       mergeSeedPortfolios();
       migrateTickerRename(); // corporate action: WAPCO -> HBMNG
       migrateDividendIds();
+      ensureRefundCategory();
       setStatus('Ready — '+purchases.length+' purchase records loaded');
     }
   } catch(e){ mfBalances=JSON.parse(JSON.stringify(defaultMFBalances)); setStatus('Error: '+e.message); }
@@ -2160,7 +2174,7 @@ function migrateDividendIds(){
    history in date order, reducing the running cost basis proportionally on each
    sell rather than just netting unit counts. Also yields realised gain/loss. */
 function computeCostBasis(ticker,plan){
-  const rows=purchases.filter(p=>p.stock===ticker && (plan===undefined || (p.plan||'')===plan))
+  const rows=purchases.filter(p=>p.stock===ticker && (plan===undefined || (p.plan||'')===plan) && (p.type||'buy')!=='application')
                        .slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   let units=0, cost=0, realizedGain=0;
   rows.forEach(p=>{
@@ -5122,6 +5136,7 @@ function syncHoldingsFromPurchases(){
   // whenever the ticker maps unambiguously to a single existing portfolio.
   const groups={};
   purchases.forEach(p=>{
+    if((p.type||'buy')==='application') return; // pending allotment — not a share position yet
     const plan=p.plan||'';
     const key=p.stock+'|'+plan;
     if(!groups[key]) groups[key]={stock:p.stock,plan,totalUnits:0};
@@ -5303,10 +5318,13 @@ function renderHoldingPurchasesHTML(ticker,plan){
   let totalBuy=0, totalSell=0, netUnits=0;
   rows.forEach(p=>{
     const isSell=(p.type||'buy')==='sell';
-    if(isSell){ totalSell+=p.totalAmt||0; netUnits-=p.units||0; } else { totalBuy+=p.totalAmt||0; netUnits+=p.units||0; }
+    const isApplication=(p.type||'buy')==='application';
+    if(isSell){ totalSell+=p.totalAmt||0; netUnits-=p.units||0; }
+    else if(!isApplication){ totalBuy+=p.totalAmt||0; netUnits+=p.units||0; }
+    const typeTag=isApplication?'<span class="tag tag-amber">Pending Allotment</span>':`<span class="tag ${isSell?'tag-red':'tag-green'}">${isSell?'Sell':'Buy'}</span>`;
     h+=`<tr>
       <td>${p.date}</td>
-      <td><span class="tag ${isSell?'tag-red':'tag-green'}">${isSell?'Sell':'Buy'}</span></td>
+      <td>${typeTag}</td>
       <td class="num">${Number(p.units).toLocaleString()}</td>
       <td class="num">${fmtN(p.price)}</td>
       <td class="num">${p.charges?fmtN(p.charges):'—'}</td>
@@ -5482,6 +5500,115 @@ function filterPurchases(ticker,btn){
   renderPurchases();
 }
 
+/* ═══════════════════════════════════════════
+   IPO / RIGHTS APPLICATIONS — ALLOTMENT CONFIRMATION
+   Applications are recorded as purchases with type='application'. They're
+   excluded from holdings, cost-basis, and dividend-qualifying-share
+   calculations until confirmed. Confirming converts the record into a normal
+   Buy and — if the allotted amount is less than what was applied for — logs
+   the difference as an editable Income & Expenses entry (refund), so the
+   cash isn't lost from cash flow tracking. The refund amount auto-calculates
+   but can be overridden before confirming, and can still be edited afterward
+   like any other Income & Expenses transaction.
+═══════════════════════════════════════════ */
+function ensureRefundCategory(){
+  if(!CF_CATEGORIES.income.includes('IPO/Rights Refund')){
+    CF_CATEGORIES.income.push('IPO/Rights Refund');
+  }
+}
+
+function toggleAllotmentForm(id){
+  const row=document.getElementById('alot-row-'+id);
+  if(!row) return;
+  const isOpen=row.style.display!=='none';
+  // Collapse any other open allotment form before opening this one
+  document.querySelectorAll('tr[id^="alot-row-"]').forEach(r=>{
+    if(r.id!=='alot-row-'+id) r.style.display='none';
+  });
+  row.style.display=isOpen?'none':'table-row';
+}
+
+function renderAllotmentFormHTML(p){
+  const appliedTotal=p.totalAmt||0;
+  return `<div style="padding:10px 14px;background:var(--amber-l)">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px">🎯 Confirm allotment — ${p.stock}</div>
+    <div class="row" style="margin-bottom:6px">
+      <div class="f1"><label>Units allotted</label><input type="number" min="0" id="alot-units-${p.id}" value="${p.units}" oninput="updateAllotmentRefundPreview('${p.id}')"/></div>
+      <div class="f1"><label>Price (₦)</label><input type="number" min="0" step="0.01" id="alot-price-${p.id}" value="${p.price}" oninput="updateAllotmentRefundPreview('${p.id}')"/></div>
+      <div class="f1"><label>Charges (₦)</label><input type="number" min="0" step="0.01" id="alot-charges-${p.id}" value="${p.charges||0}" oninput="updateAllotmentRefundPreview('${p.id}')"/></div>
+      <div class="f1"><label>Allotment date</label><input type="date" id="alot-date-${p.id}" value="${today}"/></div>
+    </div>
+    <div class="row" style="margin-bottom:6px">
+      <div class="f1"><label>Amount applied (₦)</label><input type="text" value="${fmt(appliedTotal)}" disabled style="background:var(--bg);color:var(--ink3)"/></div>
+      <div class="f1"><label>Amount allotted (₦)</label><input type="text" id="alot-allotted-total-${p.id}" value="${fmt(appliedTotal)}" disabled style="background:var(--bg);color:var(--ink3)"/></div>
+      <div class="f1"><label>Refund (₦)</label><input type="number" step="0.01" id="alot-refund-${p.id}" value="0"/></div>
+      <div style="flex:0;display:flex;gap:6px;align-items:flex-end">
+        <button class="btn-primary btn-sm" onclick="saveAllotment('${p.id}')">Confirm ↗</button>
+        <button class="btn-sm" onclick="toggleAllotmentForm('${p.id}')">Cancel</button>
+      </div>
+    </div>
+    <div class="hint">Refund auto-calculates as (amount applied − amount allotted) whenever units/price/charges change, but you can override it before confirming — e.g. if the registrar's refund differs slightly. Confirming converts this into a normal Buy record and logs the refund (if any) as an editable income entry under Income &amp; Expenses.</div>
+  </div>`;
+}
+
+function updateAllotmentRefundPreview(id){
+  const p=purchases.find(x=>x.id===id);
+  if(!p) return;
+  const units=parseFloat(document.getElementById('alot-units-'+id).value)||0;
+  const price=parseFloat(document.getElementById('alot-price-'+id).value)||0;
+  const charges=parseFloat(document.getElementById('alot-charges-'+id).value)||0;
+  const allottedTotal=units*price+charges;
+  const totalEl=document.getElementById('alot-allotted-total-'+id);
+  if(totalEl) totalEl.value=fmt(allottedTotal);
+  const refundEl=document.getElementById('alot-refund-'+id);
+  if(refundEl) refundEl.value=((p.totalAmt||0)-allottedTotal).toFixed(2);
+}
+
+function saveAllotment(id){
+  const p=purchases.find(x=>x.id===id);
+  if(!p){alert('Application record not found.');return;}
+  const units=parseFloat(document.getElementById('alot-units-'+id).value)||0;
+  const price=parseFloat(document.getElementById('alot-price-'+id).value)||0;
+  const charges=parseFloat(document.getElementById('alot-charges-'+id).value)||0;
+  const allotDate=document.getElementById('alot-date-'+id).value||today;
+  const refund=parseFloat(document.getElementById('alot-refund-'+id).value)||0;
+  if(!units){alert('Enter units allotted (use 0 only if the application was fully rejected/refunded).');return;}
+
+  const appliedTotal=p.totalAmt||0;
+  const allottedTotal=units*price+charges;
+
+  // Convert the pending application into a normal Buy record
+  p.type='buy';
+  p.units=units;
+  p.price=price;
+  p.charges=charges;
+  p.totalAmt=allottedTotal;
+  p.allotmentDate=allotDate;
+  p.appliedAmt=appliedTotal; // keep the original applied figure for reference
+
+  // Log or update the refund as an editable Income & Expenses entry
+  if(refund>0){
+    ensureRefundCategory();
+    if(p.refundTxnId && cashflowTxns.find(t=>t.id===p.refundTxnId)){
+      const idx=cashflowTxns.findIndex(t=>t.id===p.refundTxnId);
+      cashflowTxns[idx]={...cashflowTxns[idx],date:allotDate,amount:refund,category:'IPO/Rights Refund',note:`Refund — ${p.stock} allotment`};
+    } else {
+      const txId='cf_'+uid();
+      cashflowTxns.push({id:txId,date:allotDate,type:'income',category:'IPO/Rights Refund',amount:refund,currency:'NGN',note:`Refund — ${p.stock} allotment`});
+      p.refundTxnId=txId;
+    }
+    cashflowTxns.sort((a,b)=>a.date.localeCompare(b.date));
+  } else if(p.refundTxnId){
+    // Refund adjusted to zero — remove the now-stale cash flow entry
+    cashflowTxns=cashflowTxns.filter(t=>t.id!==p.refundTxnId);
+    p.refundTxnId=null;
+  }
+
+  purchases.sort((a,b)=>a.date.localeCompare(b.date));
+  syncHoldingsFromPurchases();
+  save(); renderAll();
+}
+
 function renderPurchases(){
   // pills
   const stocks=[...new Set(purchases.map(p=>p.stock))].sort();
@@ -5500,11 +5627,13 @@ function renderPurchases(){
   let totalBuy=0, totalSell=0;
   rows.forEach(p=>{
     const isSell=(p.type||'buy')==='sell';
-    if(isSell) totalSell+=p.totalAmt||0; else totalBuy+=p.totalAmt||0;
+    const isApplication=(p.type||'buy')==='application';
+    if(isSell) totalSell+=p.totalAmt||0; else if(!isApplication) totalBuy+=p.totalAmt||0;
+    const typeTag=isApplication?'<span class="tag tag-amber">Pending Allotment</span>':`<span class="tag ${isSell?'tag-red':'tag-green'}">${isSell?'Sell':'Buy'}</span>`;
     html+=`<tr class="tr-hover" onclick="loadPurchaseForEdit('${p.id}')" title="Click to edit">
       <td>${p.date}</td><td><strong>${p.stock}</strong></td>
       <td>${p.plan?`<span class="tag ${planTag(p.plan)}">${p.plan}</span>`:'<span class="tag tag-grey">—</span>'}</td>
-      <td><span class="tag ${isSell?'tag-red':'tag-green'}">${isSell?'Sell':'Buy'}</span></td>
+      <td>${typeTag}</td>
       <td class="num">${Number(p.units).toLocaleString()}</td>
       <td class="num">${fmtN(p.price)}</td>
       <td class="num">${p.charges?fmtN(p.charges):'—'}</td>
@@ -5513,8 +5642,14 @@ function renderPurchases(){
       <td style="font-size:11px;color:var(--ink3)">${p.cscs||'—'}</td>
       <td style="font-size:11px;color:var(--ink3)">${p.source||''}</td>
       <td style="font-size:11px;color:var(--ink3)">${p.note||''}</td>
-      <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removePurchase('${p.id}')">✕</button></td>
+      <td onclick="event.stopPropagation()">
+        ${isApplication?`<button class="btn-sm btn-primary" onclick="toggleAllotmentForm('${p.id}')" style="margin-right:4px">🎯 Confirm</button>`:''}
+        <button class="btn-danger btn-sm" onclick="removePurchase('${p.id}')">✕</button>
+      </td>
     </tr>`;
+    if(isApplication){
+      html+=`<tr id="alot-row-${p.id}" style="display:none"><td colspan="13" style="padding:0">${renderAllotmentFormHTML(p)}</td></tr>`;
+    }
   });
   html+=`<tr class="tfoot"><td colspan="7">Total (${rows.length} transactions) — Bought ${fmt(totalBuy)} / Sold ${fmt(totalSell)}</td><td class="num">${fmt(totalBuy-totalSell)}</td><td colspan="5"></td></tr>`;
   document.getElementById('purchase-table').innerHTML=html+'</tbody></table></div>';
@@ -5537,7 +5672,7 @@ function renderPurchases(){
 function getSharesAsOf(ticker,dateStr){
   if(!ticker) return 0;
   if(!dateStr) return getShares(ticker);
-  return purchases.filter(p=>p.stock===ticker&&p.date&&p.date<=dateStr)
+  return purchases.filter(p=>p.stock===ticker&&p.date&&p.date<=dateStr&&(p.type||'buy')!=='application')
     .reduce((s,p)=>s+((p.type||'buy')==='sell'?-1:1)*(p.units||0),0);
 }
 
@@ -5630,24 +5765,55 @@ function removeDividend(id){
   save(); renderDividends();
 }
 
-function renderDividends(){
-  if(!dividends.length){document.getElementById('dividends-table').innerHTML='<div class="empty">No dividend records yet.</div>';return;}
-  const totalDeclared=dividends.reduce((s,d)=>{
-    const shares=getSharesAsOf(d.stock,d.qualDate);
-    return s+(d.dps*shares||0);
-  },0);
-  const totalWHT=dividends.reduce((s,d)=>s+(d.whtAmt||0),0);
-  const totalReceived=dividends.reduce((s,d)=>s+(d.received||0),0);
+/* ── Year filter datalist: from the first year of stock purchase through the current year, "All" on top ── */
+function populateDividendYearFilter(){
+  const sel=document.getElementById('div-year-filter');
+  if(!sel) return;
+  const prev=sel.value||divFilterYear;
+  const purchYears=purchases.map(p=>p.date?parseInt(p.date.slice(0,4)):null).filter(Boolean);
+  const divYears=dividends.map(d=>d.year).filter(Boolean);
+  const nowYear=new Date().getFullYear();
+  const allYears=[...purchYears,...divYears,nowYear];
+  const minYear=Math.min(...allYears);
+  const maxYear=Math.max(...allYears);
+  let years=[];
+  for(let y=maxYear;y>=minYear;y--) years.push(y);
+  sel.innerHTML='<option value="ALL">All years</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  if(prev==='ALL'||years.includes(parseInt(prev))) sel.value=prev; else sel.value='ALL';
+}
 
-  let html='<div class="tbl-wrap"><table><thead><tr>'+
+/* Clicking a stock in the summary table toggles its inline (editable) history open/closed. */
+function toggleDividendStock(stock){
+  divFilterStock=(divFilterStock===stock)?'ALL':stock;
+  renderDividends();
+}
+
+function filterDividendsByYear(year){
+  divFilterYear=year;
+  renderDividends();
+}
+
+/* Builds the editable per-record table for one stock, embedded inline beneath its summary row. */
+function renderDividendHistoryHTML(stock){
+  let rows=dividends.filter(d=>d.stock===stock);
+  if(divFilterYear!=='ALL') rows=rows.filter(d=>String(d.year)===String(divFilterYear));
+  rows=applySort(rows,divSort,DIV_SORT_GETTERS);
+  if(!rows.length){
+    return `<div style="padding:10px 14px;font-size:12px;color:var(--ink3)">No dividend records for ${stock}${divFilterYear!=='ALL'?' in '+divFilterYear:''}.</div>`;
+  }
+  let hh=`<div style="padding:10px 14px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px">📋 Dividend records — ${stock}${divFilterYear!=='ALL'?' ('+divFilterYear+')':''}</div>
+    <div class="tbl-wrap"><table style="background:var(--surface)"><thead><tr>`+
     sortTh('div','stock','Stock')+sortTh('div','shares','Shares','num')+sortTh('div','dps','DPS','num')+sortTh('div','total','Total Declared','num')+
     sortTh('div','qualDate','Qual. Date')+sortTh('div','payDate','Pay Date')+'<th class="num">WHT %</th>'+sortTh('div','whtAmt','WHT Amt','num')+
     sortTh('div','received','Net Received','num')+sortTh('div','status','Status')+'<th></th></tr></thead><tbody>';
-  applySort([...dividends],divSort,DIV_SORT_GETTERS).forEach(d=>{
+  let totalDeclared=0,totalWHT=0,totalReceived=0;
+  rows.forEach(d=>{
     const shares=getSharesAsOf(d.stock,d.qualDate);
     const total=d.dps*shares;
+    totalDeclared+=total||0; totalWHT+=d.whtAmt||0; totalReceived+=d.received||0;
     const stCl=d.status==='paid'?'tag-green':d.status==='reinvested'?'tag-blue':'tag-amber';
-    html+=`<tr class="tr-hover" onclick="loadDividendForEdit('${d.id}')" title="Click to edit">
+    hh+=`<tr class="tr-hover" onclick="loadDividendForEdit('${d.id}')" title="Click to edit">
       <td><strong>${d.stock}</strong></td>
       <td class="num" title="Shares held as of Qual. Date">${Number(shares).toLocaleString()}</td>
       <td class="num">${fmtN(d.dps)}</td>
@@ -5661,8 +5827,62 @@ function renderDividends(){
       <td onclick="event.stopPropagation()"><button class="btn-danger btn-sm" onclick="removeDividend('${d.id}')">✕</button></td>
     </tr>`;
   });
-  html+=`<tr class="tfoot"><td colspan="3">Total</td><td class="num">${fmt(totalDeclared)}</td><td colspan="2"></td><td></td><td class="num" style="color:var(--red)">${fmt(totalWHT)}</td><td class="num">${fmt(totalReceived)}</td><td colspan="2"></td></tr>`;
-  document.getElementById('dividends-table').innerHTML=html+'</tbody></table></div>';
+  hh+=`<tr class="tfoot"><td colspan="3">Total</td><td class="num">${fmt(totalDeclared)}</td><td colspan="2"></td><td></td><td class="num" style="color:var(--red)">${fmt(totalWHT)}</td><td class="num">${fmt(totalReceived)}</td><td colspan="2"></td></tr>`;
+  hh+='</tbody></table></div></div>';
+  return hh;
+}
+
+function renderDividends(){
+  populateDividendYearFilter();
+
+  const tableEl=document.getElementById('dividends-table');
+
+  // Year filter applies to the summary as a whole; the stock itself is chosen by clicking a summary row
+  let yearRows=[...dividends];
+  if(divFilterYear!=='ALL') yearRows=yearRows.filter(d=>String(d.year)===String(divFilterYear));
+
+  if(!yearRows.length){
+    if(tableEl) tableEl.innerHTML=`<div class="empty">No dividend records${divFilterYear!=='ALL'?' for '+divFilterYear+'.':' yet.'}</div>`;
+    return;
+  }
+
+  // ── Group into a per-stock summary (this is the clickable top table — not editable directly) ──
+  const byStock={};
+  yearRows.forEach(d=>{
+    const shares=getSharesAsOf(d.stock,d.qualDate);
+    const total=d.dps*shares;
+    if(!byStock[d.stock]) byStock[d.stock]={declared:0,received:0,wht:0,count:0};
+    byStock[d.stock].declared+=total||0;
+    byStock[d.stock].received+=d.received||0;
+    byStock[d.stock].wht+=d.whtAmt||0;
+    byStock[d.stock].count++;
+  });
+  const stockList=Object.keys(byStock).sort((a,b)=>byStock[b].received-byStock[a].received);
+
+  const grandDeclared=stockList.reduce((s,k)=>s+byStock[k].declared,0);
+  const grandWHT=stockList.reduce((s,k)=>s+byStock[k].wht,0);
+  const grandReceived=stockList.reduce((s,k)=>s+byStock[k].received,0);
+
+  let html='<div class="tbl-wrap"><table><thead><tr>'+
+    '<th>Stock</th><th class="num"># Payments</th><th class="num">Total Declared</th><th class="num">WHT</th><th class="num">Net Received</th></tr></thead><tbody>';
+  stockList.forEach(stock=>{
+    const v=byStock[stock];
+    const isSel=(divFilterStock===stock && byStock[divFilterStock]);
+    html+=`<tr class="tr-hover" onclick="toggleDividendStock('${stock}')" title="Click to view and edit records"${isSel?' style="background:var(--blue-l)"':''}>
+      <td><strong>${stock}</strong>${isSel?' <span class="tag tag-blue" style="font-size:9px">▾ Expanded</span>':''}</td>
+      <td class="num">${v.count}</td>
+      <td class="num">${v.declared>0?fmt(v.declared):'—'}</td>
+      <td class="num" style="color:var(--red)">${v.wht>0?fmt(v.wht):'—'}</td>
+      <td class="num" style="font-weight:600">${v.received>0?fmt(v.received):'—'}</td>
+    </tr>`;
+    /* ── Inline, editable history for the selected stock — rendered as its own row directly
+       under the clicked summary row, not appended after the whole table. ── */
+    if(isSel){
+      html+=`<tr><td colspan="5" style="padding:0;background:var(--blue-l)">${renderDividendHistoryHTML(stock)}</td></tr>`;
+    }
+  });
+  html+=`<tr class="tfoot"><td>Total (${stockList.length} stock${stockList.length!==1?'s':''})</td><td></td><td class="num">${fmt(grandDeclared)}</td><td class="num" style="color:var(--red)">${fmt(grandWHT)}</td><td class="num">${fmt(grandReceived)}</td></tr>`;
+  if(tableEl) tableEl.innerHTML=html+'</tbody></table></div>';
 }
 
 /* ═══════════════════════════════════════════
