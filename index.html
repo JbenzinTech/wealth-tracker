@@ -202,7 +202,7 @@ button:hover{background:var(--bg)}
     <span></span><span></span><span></span>
   </button>
   <div class="hero-title">Investment Portfolio Tracker</div>
-  <div class="hero-sub">v2.8 &nbsp;·&nbsp; Nigerian Exchange Group</div>
+  <div class="hero-sub">v3.1 &nbsp;·&nbsp; Nigerian Exchange Group</div>
 </div>
 
 <!-- Mobile drawer overlay -->
@@ -282,10 +282,24 @@ button:hover{background:var(--bg)}
     <button class="nav-btn" onclick="switchTab('cashflow',this)">💵 Income &amp; Expenses</button>
     <button class="nav-btn" onclick="switchTab('budgeting',this)">📊 Budgeting</button>
   </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Accounting</div>
+    <button class="nav-btn" onclick="switchTab('finstatements',this)">📑 Financial Statements</button>
+    <button class="nav-btn" onclick="switchTab('ledger',this)">📖 General Ledger</button>
+    <button class="nav-btn" onclick="switchTab('journal',this)">🧾 Journal Entries</button>
+    <button class="nav-btn" onclick="switchTab('coa',this)">🗂️ Chart of Accounts</button>
+    <button class="nav-btn" onclick="switchTab('corpactions',this)">⚙️ Corporate Actions</button>
+  </div>
   <hr class="sidebar-divider"/>
   <div class="sidebar-section">
     <div class="sidebar-label">Market</div>
-    <button class="nav-btn" onclick="switchTab('stocks',this)">📋 NGX Stocks</button>
+    <button class="settings-btn" id="ngxmarket-toggle" onclick="toggleNGXMarketMenu(this)">
+      📋 NGX Market <span class="arrow">▾</span>
+    </button>
+    <div class="settings-submenu" id="ngxmarket-submenu">
+      <button onclick="switchTab('stocks',this);closeNGXMarketMenu()">📋 Stock List</button>
+      <button onclick="switchTab('ngxcalc',this);closeNGXMarketMenu()">🧮 Purchase Calculator</button>
+    </div>
     <button class="nav-btn" onclick="switchTab('usmarket',this)">🇺🇸 US Market</button>
     <button class="nav-btn" onclick="switchTab('cryptomarket',this)">₿ Crypto Market</button>
   </div>
@@ -305,8 +319,7 @@ button:hover{background:var(--bg)}
       </div> -->
       <button onclick="switchTab('fx',this);closeSettings()">💱 Currency &amp; FX</button>
       <div class="settings-submenu-section" onclick="switchTab('categories',this);closeSettings()">🏷️ Categories</div>
-      <div class="settings-submenu-section" onclick="switchTab('datastorage',this);closeSettings()">💾 Data Storage</div>
-      <div class="settings-submenu-section" onclick="switchTab('cloudsync',this);closeSettings()">☁️ Cloud Sync</div>
+      <button onclick="switchTab('datastorage',this);closeSettings()">💾 Data Storage</button>
     </div>
   </div>
 </nav>
@@ -1197,6 +1210,107 @@ button:hover{background:var(--bg)}
   </div>
 </div>
 
+<!-- ══════════════════════ NGX PURCHASE CALCULATOR ══════════════════════ -->
+<div id="panel-ngxcalc" class="panel">
+  <div class="card">
+    <div class="card-title">Mode</div>
+    <div class="pill-row">
+      <button class="pill sel" id="ngxc-mode-buy" onclick="setNGXCalcMode('buy')">📈 Buy</button>
+      <button class="pill" id="ngxc-mode-sell" onclick="setNGXCalcMode('sell')">📉 Sell</button>
+      <button class="pill" id="ngxc-mode-round" onclick="setNGXCalcMode('round')">🔁 Round Trip</button>
+    </div>
+    <div class="hint" style="margin-top:0">Estimates brokerage, statutory fees (SEC, NGX, CSCS), stamp duty, VAT and CGT for a trade. Ticker and live price are linked to the Stock List — for estimation only, not financial advice.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Stock</div>
+    <div class="row">
+      <div class="f15">
+        <label style="font-weight:600;color:var(--ink)">Ticker / Stock</label>
+        <input id="ngxc-ticker" list="ngx-list5" placeholder="e.g. MTNN" oninput="onNGXCalcTickerInput(this.value)" style="text-transform:uppercase"/>
+        <datalist id="ngx-list5"></datalist>
+      </div>
+      <div class="f2"><label style="font-weight:600;color:var(--ink)">Company</label><input id="ngxc-company" type="text" disabled style="background:var(--bg);color:var(--ink3)"/></div>
+      <div class="f1"><label style="font-weight:600;color:var(--ink)">Sector</label><input id="ngxc-sector" type="text" disabled style="background:var(--bg);color:var(--ink3)"/></div>
+    </div>
+    <div class="metrics" id="ngxc-price-metrics" style="margin-bottom:0"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" id="ngxc-order-title">Broker &amp; Buy Order</div>
+    <div class="row">
+      <div class="f2"><label style="font-weight:600;color:var(--ink)">Broker (auto-fills fee profile)</label>
+        <select id="ngxc-broker" onchange="applyNGXCalcBroker(this.value)">
+          <option value="">— Select a broker —</option>
+          <option value="stanbic">Stanbic IBTC Stockbrokers</option>
+          <option value="cardinalstone">CardinalStone Securities</option>
+          <option value="fbnquest">FBNQuest Securities</option>
+          <option value="arm">ARM Securities</option>
+          <option value="vetiva">Vetiva Securities</option>
+          <option value="chapelhill">Chapel Hill Denham</option>
+          <option value="coronation">Coronation Securities</option>
+          <option value="meristem">Meristem Securities</option>
+          <option value="rencap">Renaissance Capital</option>
+          <option value="custom">Custom / Manual entry</option>
+        </select>
+      </div>
+      <div class="f2"><label style="font-weight:600;color:var(--ink)">Broker profile</label><div id="ngxc-broker-info" class="hint" style="margin-top:6px">Select a broker to see their fee profile.</div></div>
+    </div>
+
+    <div id="ngxc-single-order" class="row">
+      <div class="f1"><label id="ngxc-lbl-price" style="font-weight:600;color:var(--ink)">Buy Price (₦/share)</label><input id="ngxc-price" type="number" min="0" step="0.01" placeholder="0.00" oninput="renderNGXCalc()"/></div>
+      <div class="f1"><label style="font-weight:600;color:var(--ink)">Units</label><input id="ngxc-units" type="number" min="0" step="1" placeholder="0" oninput="renderNGXCalc()"/></div>
+      <div class="f1"><label style="font-weight:600;color:var(--ink)">Gross value</label><input id="ngxc-gross-disp" type="text" disabled style="background:var(--bg);color:var(--ink3)"/></div>
+    </div>
+
+    <div id="ngxc-sell-extra" class="row" style="display:none">
+      <div class="f1"><label style="font-weight:600;color:var(--ink)">Original cost price (₦/share)</label><input id="ngxc-costprice" type="number" min="0" step="0.01" placeholder="0.00" oninput="renderNGXCalc()"/></div>
+      <div class="f1"><label style="font-weight:600;color:var(--ink)">CGT rate on gain (%)</label><input id="ngxc-cgtrate" type="number" min="0" step="0.1" value="10" oninput="renderNGXCalc()"/></div>
+    </div>
+
+    <div id="ngxc-round-inputs" style="display:none">
+      <div class="row">
+        <div class="f1"><label style="font-weight:600;color:var(--ink)">Buy price (₦/share)</label><input id="ngxc-rt-buy" type="number" min="0" step="0.01" placeholder="0.00" oninput="renderNGXCalc()"/></div>
+        <div class="f1"><label style="font-weight:600;color:var(--ink)">Sell price (₦/share)</label><input id="ngxc-rt-sell" type="number" min="0" step="0.01" placeholder="0.00" oninput="renderNGXCalc()"/></div>
+        <div class="f1"><label style="font-weight:600;color:var(--ink)">Units</label><input id="ngxc-rt-units" type="number" min="0" step="1" placeholder="0" oninput="renderNGXCalc()"/></div>
+      </div>
+      <div class="hint">Enter both buy and sell prices to see full round-trip cost, net P&amp;L, and the minimum sell price needed to break even after fees on both legs.</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="row" style="align-items:flex-end">
+      <div class="f2"><label style="font-weight:600;color:var(--ink)" id="ngxc-qc-label">Budget I want to invest (₦)</label><input id="ngxc-qc-amount" type="number" min="0" step="1000" placeholder="0.00" oninput="ngxCalcFromAmount()"/></div>
+      <div class="f2"><div class="hint" style="margin-top:0" id="ngxc-qc-result">Enter a price and amount above to see how many units it buys (or sells), fees included.</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Fees &amp; Commissions</div>
+    <div class="row">
+      <div class="f1"><label style="font-weight:600;color:var(--ink)">Brokerage (%)</label><input id="ngxc-f-brk" type="number" min="0" step="0.01" value="1.35" oninput="renderNGXCalc()"/></div>
+      <div class="f1"><label style="font-weight:600;color:var(--ink)">SEC Levy (%)</label><input id="ngxc-f-sec" type="number" min="0" step="0.001" value="0.3" oninput="renderNGXCalc()"/></div>
+      <div class="f1"><label style="font-weight:600;color:var(--ink)">NGX Levy (%)</label><input id="ngxc-f-ngx" type="number" min="0" step="0.001" value="0.005" oninput="renderNGXCalc()"/></div>
+      <div class="f1"><label style="font-weight:600;color:var(--ink)">CSCS Fee (%)</label><input id="ngxc-f-cscs" type="number" min="0" step="0.001" value="0.3" oninput="renderNGXCalc()"/></div>
+      <div class="f1"><label style="font-weight:600;color:var(--ink)" id="ngxc-stamp-lbl">Stamp Duty (%)</label><input id="ngxc-f-st" type="number" min="0" step="0.001" value="0.075" oninput="renderNGXCalc()"/></div>
+      <div class="f1"><label style="font-weight:600;color:var(--ink)">VAT on Commission (%)</label><input id="ngxc-f-vat" type="number" min="0" step="0.1" value="7.5" oninput="renderNGXCalc()"/></div>
+    </div>
+    <div class="hint" id="ngxc-fee-note">Buy fees: stamp duty (0.075%) applies to purchases only. VAT (7.5%) applies to brokerage commission only. Minimum brokerage ≈ ₦100. SEC/NGX/CSCS fees are fixed by regulation.</div>
+  </div>
+
+  <div class="card" id="ngxc-single-bd">
+    <div class="card-title" id="ngxc-bd-title">Buy Cost Breakdown</div>
+    <div class="metrics" id="ngxc-summary-metrics"></div>
+    <div id="ngxc-pnl-card"></div>
+    <div id="ngxc-breakdown-table"></div>
+    <div class="hint" id="ngxc-bd-note">Break-even price = Total cost ÷ units. The stock must trade above this to be in profit after buy-side fees.</div>
+  </div>
+
+  <div class="card" id="ngxc-round-bd" style="display:none">
+    <div class="card-title">Round Trip Analysis</div>
+    <div id="ngxc-round-table"></div>
+  </div>
+</div>
+
 <!-- ══════════════════════ PORTFOLIOS ══════════════════════ -->
 <div id="panel-portfolios" class="panel">
   <div class="card">
@@ -1326,36 +1440,6 @@ button:hover{background:var(--bg)}
   </div>
 </div>
 
-<!-- ══════════════════════ CLOUD SYNC ══════════════════════ -->
-<div id="panel-cloudsync" class="panel">
-  <div class="card">
-    <div class="card-title">☁️ Cloud Sync</div>
-    <p style="font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
-      Set a sync code below, then enter the <strong>same code</strong> on your other devices. Any device using the same code shares the same cloud copy of your data. Treat the code like a password — anyone who has it can read and change your data.
-    </p>
-    <div class="row" style="align-items:flex-end">
-      <div class="f2">
-        <label>Sync code</label>
-        <input id="sync-code-input" type="password" placeholder="Choose a private phrase — e.g. a long passphrase"/>
-      </div>
-      <div style="flex:0"><button class="btn-primary" onclick="setSyncCode()">Set / Change code</button></div>
-      <div style="flex:0"><button onclick="toggleSyncCodeVisibility()" id="sync-code-toggle-btn">👁 Show</button></div>
-    </div>
-    <div id="sync-status" style="margin-top:10px"></div>
-  </div>
-
-  <div class="card" id="sync-actions-card" style="display:none">
-    <div class="card-title">Manual sync</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn-primary" onclick="syncNow()">🔄 Sync now</button>
-      <button onclick="pushToCloud(true)">📤 Push local → cloud (overwrite cloud)</button>
-      <button onclick="pullFromCloud(true)">📥 Pull cloud → local (overwrite local)</button>
-      <button class="btn-danger" onclick="disconnectSync()">🔌 Disconnect this device</button>
-    </div>
-    <div class="hint" style="margin-top:8px">Sync now compares timestamps and keeps whichever copy is newer. The overwrite buttons force a direction — use them if something looks out of sync.</div>
-  </div>
-</div>
-
 <!-- ══════════════════════ CATEGORIES ══════════════════════ -->
 <div id="panel-categories" class="panel">
   <div class="card">
@@ -1389,7 +1473,7 @@ button:hover{background:var(--bg)}
   <div class="card">
     <div class="card-title">💾 Data storage</div>
     <p style="font-size:13px;color:var(--ink2);line-height:1.65;margin-bottom:16px">
-      Data is saved in your browser's localStorage — permanent on this device. Export a backup regularly and import it to restore on any device or browser.
+      When a sync code is set below and you're online, every change is saved straight to the cloud automatically. Your browser's localStorage is just a temporary local cache — it holds your data while offline (or before a sync code is set) and syncs to the cloud the moment you're back online. Export a backup any time as an extra copy; if cloud sync is on, exporting also saves a timestamped backup to the cloud.
     </p>
     <div style="display:flex;flex-direction:column;gap:10px;max-width:380px">
       <button class="btn-green" style="text-align:left;padding:10px 14px" onclick="exportData()">
@@ -1407,6 +1491,155 @@ button:hover{background:var(--bg)}
         <div style="font-size:11px;opacity:.75;margin-top:2px">Permanently delete everything from this browser</div>
       </button>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">☁️ Cloud Sync</div>
+    <p style="font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+      Set a sync code below, then enter the <strong>same code</strong> on your other devices. Any device using the same code shares the same cloud copy of your data. Once set, saving anything in the app pushes it straight to the cloud automatically while you're online — no manual sync needed. If you go offline, changes are held locally and pushed as soon as your connection returns. Treat the code like a password — anyone who has it can read and change your data.
+    </p>
+    <div class="row" style="align-items:flex-end">
+      <div class="f2">
+        <label>Sync code</label>
+        <input id="sync-code-input" type="password" placeholder="Choose a private phrase — e.g. a long passphrase"/>
+      </div>
+      <div style="flex:0"><button class="btn-primary" onclick="setSyncCode()">Set / Change code</button></div>
+      <div style="flex:0"><button onclick="toggleSyncCodeVisibility()" id="sync-code-toggle-btn">👁 Show</button></div>
+    </div>
+    <div id="sync-status" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card" id="sync-actions-card" style="display:none">
+    <div class="card-title">Manual sync</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn-primary" onclick="syncNow()">🔄 Sync now</button>
+      <button onclick="pushToCloud(true)">📤 Push local → cloud (overwrite cloud)</button>
+      <button onclick="pullFromCloud(true)">📥 Pull cloud → local (overwrite local)</button>
+      <button class="btn-danger" onclick="disconnectSync()">🔌 Disconnect this device</button>
+    </div>
+    <div class="hint" style="margin-top:8px">Sync now compares timestamps and keeps whichever copy is newer. The overwrite buttons force a direction — use them if something looks out of sync.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════ FINANCIAL STATEMENTS ══════════════════════ -->
+<div id="panel-finstatements" class="panel">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <div class="card-title" style="margin-bottom:2px">📑 Financial Statements</div>
+        <div class="hint" style="margin-top:0">Position is as of today; income/cash flow statements cover the period below. Figures are drawn from the auto-generated General Ledger plus current market values.</div>
+      </div>
+      <div class="row" style="margin-bottom:0;align-items:flex-end">
+        <div class="f1"><label>Period from</label><input id="fs-from" type="date" onchange="renderFinancialStatements()"/></div>
+        <div class="f1"><label>Period to</label><input id="fs-to" type="date" onchange="renderFinancialStatements()"/></div>
+      </div>
+    </div>
+  </div>
+  <div id="fs-position-card" class="card"></div>
+  <div id="fs-income-card" class="card"></div>
+  <div id="fs-cashflow-card" class="card"></div>
+  <div id="fs-changes-card" class="card"></div>
+</div>
+
+<!-- ══════════════════════ GENERAL LEDGER ══════════════════════ -->
+<div id="panel-ledger" class="panel">
+  <div class="card">
+    <div class="card-title">📖 General Ledger</div>
+    <div class="hint" style="margin-top:0;margin-bottom:8px">T-account view — every posted transaction, per account, with a running balance in the account's normal direction (debit accounts increase on debit; credit accounts increase on credit).</div>
+    <div class="row">
+      <div class="f2"><label>Account</label><select id="ledger-account" onchange="renderLedger()"></select></div>
+    </div>
+    <div id="ledger-table"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ JOURNAL ENTRIES ══════════════════════ -->
+<div id="panel-journal" class="panel">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="card-title" style="margin-bottom:0" id="je-form-title">Add manual / adjusting entry</div>
+      <div id="je-edit-badge" style="display:none;align-items:center;gap:6px">
+        <span class="tag tag-amber">✏️ Editing</span>
+        <button class="btn-sm" onclick="cancelEditJournalEntry()">✕ Cancel</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="f1"><label>Date</label><input id="je-date" type="date"/></div>
+      <div class="f2"><label>Memo</label><input id="je-memo" type="text" placeholder="e.g. Correct opening balance"/></div>
+    </div>
+    <div id="je-lines"></div>
+    <div class="row" style="margin-top:4px">
+      <button class="btn-sm" onclick="addJournalLine()">+ Add line</button>
+      <span id="je-balance-check" style="font-size:12px;font-weight:600;margin-left:8px"></span>
+      <div style="flex:1"></div>
+      <button class="btn-primary" id="je-submit-btn" onclick="saveJournalEntry()">Post entry ↗</button>
+    </div>
+    <div class="hint">Manual entries must balance (total debits = total credits) before they can be posted. Auto-generated entries (from purchases, dividends, cash flow, and mutual fund transactions) can't be edited here directly — edit the source record instead and the ledger will regenerate.</div>
+    <input type="hidden" id="je-edit-id"/>
+  </div>
+  <div class="card">
+    <div class="card-title">All journal entries</div>
+    <div id="journal-table"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ CHART OF ACCOUNTS ══════════════════════ -->
+<div id="panel-coa" class="panel">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="card-title" style="margin-bottom:0" id="coa-form-title">Add account</div>
+      <div id="coa-edit-badge" style="display:none;align-items:center;gap:6px">
+        <span class="tag tag-amber">✏️ Editing</span>
+        <button class="btn-sm" onclick="cancelEditCOA()">✕ Cancel</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="f1"><label>Code</label><input id="coa-code" type="text" placeholder="e.g. 1095"/></div>
+      <div class="f2"><label>Account name</label><input id="coa-name" type="text" placeholder="e.g. Loan Receivable"/></div>
+      <div class="f1"><label>Type</label>
+        <select id="coa-type">
+          <option value="Asset">Asset</option><option value="Liability">Liability</option>
+          <option value="Equity">Equity</option><option value="Income">Income</option><option value="Expense">Expense</option>
+        </select>
+      </div>
+      <div class="f1"><label>Normal balance</label>
+        <select id="coa-normal"><option value="debit">Debit</option><option value="credit">Credit</option></select>
+      </div>
+      <div class="f2"><label>Note (optional)</label><input id="coa-note" type="text" placeholder=""/></div>
+      <div style="flex:0"><button class="btn-primary" id="coa-submit-btn" onclick="saveCOAAccount()">Save ↗</button></div>
+    </div>
+    <div class="hint">Built-in accounts (used by auto-posted entries) can't be removed, but you can add your own accounts for manual journal entries. Click a non-system row to edit it.</div>
+    <input type="hidden" id="coa-edit-id"/>
+  </div>
+  <div class="card">
+    <div class="card-title">Chart of Accounts</div>
+    <div id="coa-table"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ CORPORATE ACTIONS ══════════════════════ -->
+<div id="panel-corpactions" class="panel">
+  <div class="card">
+    <div class="card-title">⚙️ Corporate Actions log</div>
+    <p style="font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+      Record splits, bonus issues, ticker renames, and similar events for the historical record. This log is informational — it does not itself change holdings or purchase records; adjust those directly (e.g. add a bonus-issue "buy" at zero cost) when an action affects your position.
+    </p>
+    <div class="row">
+      <div class="f1"><label>Date</label><input id="ca-date" type="date"/></div>
+      <div class="f1"><label>Ticker</label><input id="ca-ticker" list="ngx-list4" placeholder="e.g. MTNN"/><datalist id="ngx-list4"></datalist></div>
+      <div class="f1"><label>Type</label>
+        <select id="ca-type">
+          <option value="split">Stock Split</option>
+          <option value="bonus">Bonus Issue</option>
+          <option value="rename">Ticker/Name Change</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="f1"><label>Ratio (optional)</label><input id="ca-ratio" type="text" placeholder="e.g. 1-for-2, 1:5"/></div>
+      <div class="f2"><label>Note</label><input id="ca-note" type="text" placeholder="e.g. WAPCO renamed to HBMNG"/></div>
+      <div style="flex:0"><button class="btn-primary" onclick="saveCorporateAction()">Add ↗</button></div>
+    </div>
+    <div id="corpactions-table"></div>
   </div>
 </div>
 
@@ -1832,7 +2065,7 @@ function renderSyncPanel(){
     card.style.display='block';
     const input=document.getElementById('sync-code-input');
     if(input && !input.value) input.value=syncCode;
-    renderSyncStatus('Connected — code is set on this device.');
+    renderSyncStatus('Connected — changes sync to the cloud automatically while online.');
   } else {
     card.style.display='none';
   }
@@ -1879,9 +2112,11 @@ async function pushToCloud(){
     await fbDb.collection('syncData').doc(syncDocId).set(payload);
     localStorage.setItem('pit_local_version', String(updatedAt));
     localStorage.setItem('pit_sync_initialized','true');
-    renderSyncStatus('✓ Pushed to cloud — '+new Date().toLocaleTimeString());
+    localStorage.removeItem('pit_pending_sync');
+    renderSyncStatus('✓ Synced to cloud — '+new Date().toLocaleTimeString());
   }catch(e){
-    renderSyncStatus('✕ Push failed — '+e.message, true);
+    localStorage.setItem('pit_pending_sync','true');
+    renderSyncStatus('✕ Sync failed, will retry — '+e.message, true);
     console.warn('Cloud push failed:', e.message);
   }
 }
@@ -1951,16 +2186,35 @@ async function syncNow(){
   }
 }
 
-/* Debounced auto-push after local changes, so other devices pick it up without manual clicks */
+/* Auto-push after local changes so the cloud copy stays current with virtually no delay.
+   localStorage is written first on every save() so nothing is ever lost, but once a sync
+   code is set it's treated as a temporary/offline cache — Firebase is the primary store
+   whenever the device is online. If the device is offline, a pending flag is set so the
+   change pushes automatically the moment connectivity returns (see the 'online' listener). */
 function scheduleAutoPush(){
   if(!syncDocId || suppressAutoPush) return;
   clearTimeout(syncDebounceTimer);
-  syncDebounceTimer=setTimeout(()=>{ pushToCloud(); }, 3000);
+  if(!navigator.onLine){
+    localStorage.setItem('pit_pending_sync','true');
+    renderSyncStatus('Offline — saved locally, will sync to cloud automatically once back online.');
+    return;
+  }
+  syncDebounceTimer=setTimeout(()=>{ pushToCloud(); }, 600);
 }
+
+/* Fires once the browser regains connectivity — pushes any changes made while offline. */
+window.addEventListener('online', ()=>{
+  if(syncDocId && localStorage.getItem('pit_pending_sync')==='true'){
+    pushToCloud();
+  }
+});
+window.addEventListener('offline', ()=>{
+  if(syncDocId) renderSyncStatus('Offline — saved locally, will sync to cloud automatically once back online.');
+});
 
 function save(){
   try{
-    localStorage.setItem(LS,JSON.stringify({holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,netWorthMilestones,cashflowTxns,budgets,cfCategories:CF_CATEGORIES}));
+    localStorage.setItem(LS,JSON.stringify({holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,netWorthMilestones,cashflowTxns,budgets,cfCategories:CF_CATEGORIES,chartOfAccounts,journalEntries,corporateActions}));
     localStorage.setItem('pit_local_version', String(Date.now()));
     setStatus('Saved — '+new Date().toLocaleTimeString());
     scheduleAutoPush();
@@ -1999,6 +2253,9 @@ function load(){
         const usdEntry=currencies.find(c=>c.code==='USD');
         if(usdEntry) usdEntry.rateToNGN=d.fxRate.usdToNgn;
       }
+      if(d.chartOfAccounts&&d.chartOfAccounts.length) chartOfAccounts=d.chartOfAccounts;
+      if(d.journalEntries)                    journalEntries=d.journalEntries||[];
+      if(d.corporateActions)                  corporateActions=d.corporateActions||[];
       mfBalances=d.mfBalances||JSON.parse(JSON.stringify(defaultMFBalances));
       if(d.allocTargets) allocTargets=d.allocTargets;
       // Merge any seed data missing from saved data
@@ -2006,10 +2263,12 @@ function load(){
       mergeSeedFunds();
       mergeSeedBrokers();
       mergeSeedPortfolios();
+      mergeSeedCOA();
       migrateTickerRename(); // corporate action: WAPCO -> HBMNG
       migrateDividendIds();
       syncProjectionsPlanFromHoldings(); // backward-compat: reconcile any stale projection portfolios
       ensureRefundCategory();
+      rebuildAutoJournal();
       save(); // persist merged seeds back to localStorage
       setStatus('Loaded — '+purchases.length+' purchases');
     } else {
@@ -2019,9 +2278,11 @@ function load(){
       mergeSeedFunds();
       mergeSeedBrokers();
       mergeSeedPortfolios();
+      mergeSeedCOA();
       migrateTickerRename(); // corporate action: WAPCO -> HBMNG
       migrateDividendIds();
       ensureRefundCategory();
+      rebuildAutoJournal();
       setStatus('Ready — '+purchases.length+' purchase records loaded');
     }
   } catch(e){ mfBalances=JSON.parse(JSON.stringify(defaultMFBalances)); setStatus('Error: '+e.message); }
@@ -2057,6 +2318,7 @@ function switchTab(id,btn){
   renderAll();
   // Extra call for stocks panel to ensure table is visible after panel becomes active
   if(id==='stocks') setTimeout(renderStocksTable, 50);
+  if(id==='ngxcalc') setTimeout(renderNGXCalc, 50);
   // Close the mobile drawer after navigating, for convenience
   closeMobileMenu();
 }
@@ -2110,6 +2372,600 @@ function mergeSeedPortfolios(){
       portfolios.push({...seed});
     }
   });
+}
+
+/* ═══════════════════════════════════════════
+   ACCOUNTING ENGINE
+   Standard chart of accounts + auto double-entry journal, built additively
+   on top of the app's existing data (purchases, dividends, cash flow, MF
+   transactions). This does not alter how any existing panel computes its
+   own numbers — it's a parallel bookkeeping layer for financial reporting.
+═══════════════════════════════════════════ */
+const DEFAULT_COA=[
+  // ── Assets (1000s) ──
+  {code:'1010',name:'Cash & Bank Accounts',            type:'Asset',     normalBalance:'debit', note:'All cash, bank, wallet balances'},
+  {code:'1020',name:'NGX Stock Investments',           type:'Asset',     normalBalance:'debit', note:'Nigerian Exchange equities, at cost'},
+  {code:'1030',name:'Mutual Funds — Money Market',     type:'Asset',     normalBalance:'debit', note:'MMF units'},
+  {code:'1040',name:'Mutual Funds — Equity/Balanced',  type:'Asset',     normalBalance:'debit', note:'Equity/balanced fund units'},
+  {code:'1050',name:'US Stocks/ETFs',                  type:'Asset',     normalBalance:'debit', note:'Foreign equities'},
+  {code:'1060',name:'Cryptocurrency',                  type:'Asset',     normalBalance:'debit', note:'Digital assets'},
+  {code:'1070',name:'Real Estate',                     type:'Asset',     normalBalance:'debit', note:'Land and property'},
+  {code:'1080',name:'Retirement / Pension Accounts',   type:'Asset',     normalBalance:'debit', note:'RSA and pension plans'},
+  {code:'1090',name:'Dividends Receivable',            type:'Asset',     normalBalance:'debit', note:'Declared but unpaid dividends'},
+  // ── Liabilities (2000s) ──
+  {code:'2010',name:'Loans & Mortgages',                type:'Liability', normalBalance:'credit', note:'Mortgages, auto/personal/business loans'},
+  {code:'2020',name:'Credit Cards & Overdrafts',        type:'Liability', normalBalance:'credit', note:''},
+  {code:'2090',name:'Other Liabilities',                type:'Liability', normalBalance:'credit', note:''},
+  // ── Equity / Net Assets (3000s) ──
+  {code:'3010',name:'Opening Net Assets',               type:'Equity',    normalBalance:'credit', note:'Balancing entry for pre-existing balances'},
+  {code:'3020',name:'Accumulated Surplus',              type:'Equity',    normalBalance:'credit', note:'Retained prior-period earnings'},
+  {code:'3030',name:'Current Period Earnings',          type:'Equity',    normalBalance:'credit', note:'Rolls up from the Income Statement'},
+  // ── Income (4000s) ──
+  {code:'4010',name:'Dividend Income',                  type:'Income',    normalBalance:'credit', note:'Gross dividends declared'},
+  {code:'4020',name:'Realized Investment Gains',        type:'Income',    normalBalance:'credit', note:'Gains on stock sales'},
+  {code:'4030',name:'Unrealized Investment Gains',      type:'Income',    normalBalance:'credit', note:'Mark-to-market gains, current holdings'},
+  {code:'4040',name:'Interest / MMF Income',            type:'Income',    normalBalance:'credit', note:''},
+  {code:'4050',name:'Salary Income',                    type:'Income',    normalBalance:'credit', note:''},
+  {code:'4060',name:'Business Income',                  type:'Income',    normalBalance:'credit', note:''},
+  {code:'4070',name:'Rental Income',                    type:'Income',    normalBalance:'credit', note:''},
+  {code:'4080',name:'Gifts Received',                   type:'Income',    normalBalance:'credit', note:''},
+  {code:'4090',name:'Other Income',                     type:'Income',    normalBalance:'credit', note:''},
+  // ── Expenses (5000s) ──
+  {code:'5010',name:'Brokerage Charges & Fees',         type:'Expense',   normalBalance:'debit', note:'Trading charges on buys/sells'},
+  {code:'5020',name:'Withholding Tax (Dividends)',      type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5030',name:'Realized Investment Losses',       type:'Expense',   normalBalance:'debit', note:'Losses on stock sales'},
+  {code:'5040',name:'Unrealized Investment Losses',     type:'Expense',   normalBalance:'debit', note:'Mark-to-market losses, current holdings'},
+  {code:'5050',name:'Housing',                          type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5060',name:'Transportation',                   type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5070',name:'Food & Groceries',                 type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5080',name:'Utilities',                        type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5090',name:'Healthcare',                       type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5100',name:'Entertainment',                    type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5110',name:'Debt Payments',                    type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5120',name:'Education',                        type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5130',name:'Personal Care',                    type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5140',name:'Insurance',                        type:'Expense',   normalBalance:'debit', note:''},
+  {code:'5150',name:'Other Expenses',                   type:'Expense',   normalBalance:'debit', note:''},
+];
+
+function mergeSeedCOA(){
+  DEFAULT_COA.forEach(seed=>{
+    if(!chartOfAccounts.find(a=>a.code===seed.code)){
+      chartOfAccounts.push({...seed,system:true});
+    }
+  });
+}
+
+function coaAccount(code){ return chartOfAccounts.find(a=>a.code===code); }
+function coaName(code){ const a=coaAccount(code); return a?`${a.code} · ${a.name}`:code; }
+
+/* Maps a cash-flow category name to an income/expense account code.
+   Falls back to Other Income/Expense for custom categories the user has added. */
+const CF_INCOME_ACCOUNT_MAP={
+  'Salary':'4050','Business Income':'4060','Dividends/Investment Income':'4010',
+  'Rental Income':'4070','Gifts':'4080','Other Income':'4090'
+};
+const CF_EXPENSE_ACCOUNT_MAP={
+  'Housing':'5050','Transportation':'5060','Food & Groceries':'5070','Utilities':'5080',
+  'Healthcare':'5090','Entertainment':'5100','Debt Payments':'5110','Savings/Investments':'5150',
+  'Education':'5120','Personal Care':'5130','Insurance':'5140','Other':'5150',
+  'IPO/Rights Refund':'4090' // refunds are logged as income even though the category lives in the income list
+};
+function cfAccountFor(type,category){
+  if(type==='income') return CF_INCOME_ACCOUNT_MAP[category]||'4090';
+  return CF_EXPENSE_ACCOUNT_MAP[category]||'5150';
+}
+
+/* Builds one balanced double-entry journal line-set. Every entry's debit
+   lines must sum to its credit lines — enforced by construction here, and
+   checked again defensively in isEntryBalanced(). */
+function jEntry(date,memo,refType,refId,lines){
+  return {id:'je_'+uid(),date,memo,refType,refId,auto:true,lines};
+}
+function isEntryBalanced(entry){
+  const dr=entry.lines.reduce((s,l)=>s+(l.debit||0),0);
+  const cr=entry.lines.reduce((s,l)=>s+(l.credit||0),0);
+  return Math.abs(dr-cr)<0.01;
+}
+
+/* Regenerates every AUTO-tagged journal entry from source transactions.
+   Manual/adjusting entries (auto:false) are left untouched. Safe to call
+   repeatedly — it's idempotent since it fully replaces the auto set each time. */
+function rebuildAutoJournal(){
+  const manual=journalEntries.filter(e=>!e.auto);
+  const auto=[];
+
+  // ── Stock purchases & sales (average-cost method, walked per ticker+portfolio) ──
+  const groups={};
+  purchases.forEach(p=>{
+    if((p.type||'buy')==='application') return; // not yet an accounting event
+    const key=p.stock+'|'+(p.plan||'');
+    (groups[key]=groups[key]||[]).push(p);
+  });
+  Object.values(groups).forEach(rows=>{
+    rows.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    let units=0, cost=0;
+    rows.forEach(p=>{
+      const isSell=(p.type||'buy')==='sell';
+      if(isSell){
+        const avgCost=units>0?cost/units:0;
+        const sellUnits=Math.min(p.units||0, units);
+        const costRemoved=avgCost*sellUnits;
+        const proceeds=p.totalAmt||0;
+        const gain=proceeds-costRemoved;
+        const lines=[
+          {account:'1010',debit:proceeds,credit:0},
+          {account:'1020',debit:0,credit:costRemoved},
+        ];
+        if(gain>=0) lines.push({account:'4020',debit:0,credit:gain});
+        else lines.push({account:'5030',debit:-gain,credit:0});
+        auto.push(jEntry(p.date,`Sell ${p.units} ${p.stock}`,'purchase',p.id,lines));
+        units-=sellUnits; cost-=costRemoved;
+      } else {
+        auto.push(jEntry(p.date,`Buy ${p.units} ${p.stock}`,'purchase',p.id,[
+          {account:'1020',debit:p.totalAmt||0,credit:0},
+          {account:'1010',debit:0,credit:p.totalAmt||0},
+        ]));
+        units+=(p.units||0); cost+=(p.totalAmt||0);
+      }
+    });
+  });
+
+  // ── Dividends received ──
+  dividends.forEach(d=>{
+    const gross=d.gross||((d.dps||0)*getSharesAsOf(d.stock,d.qualDate));
+    const wht=d.whtAmt||0;
+    const received=d.received||0;
+    if(!gross && !received) return; // nothing to post yet (pending/undeclared)
+    const lines=[{account:'1010',debit:received,credit:0}];
+    if(wht>0) lines.push({account:'5020',debit:wht,credit:0});
+    lines.push({account:'4010',debit:0,credit:gross||(received+wht)});
+    if(isEntryBalanced({lines})) auto.push(jEntry(d.payDate||d.qualDate||today,`Dividend — ${d.stock} (${d.year})`,'dividend',d.id,lines));
+  });
+
+  // ── Cash flow income & expenses ──
+  cashflowTxns.forEach(t=>{
+    const ngn=toNGN(t.amount,t.currency);
+    const acct=cfAccountFor(t.type,t.category);
+    if(t.type==='income'){
+      auto.push(jEntry(t.date,`${t.category}${t.note?' — '+t.note:''}`,'cashflow',t.id,[
+        {account:'1010',debit:ngn,credit:0},{account:acct,debit:0,credit:ngn},
+      ]));
+    } else {
+      auto.push(jEntry(t.date,`${t.category}${t.note?' — '+t.note:''}`,'cashflow',t.id,[
+        {account:acct,debit:ngn,credit:0},{account:'1010',debit:0,credit:ngn},
+      ]));
+    }
+  });
+
+  // ── Mutual fund subscriptions & redemptions (balance-type entries are corrections, not flows — skipped) ──
+  mfTxns.forEach(t=>{
+    if(t.txnType!=='subscription' && t.txnType!=='redemption') return;
+    const acct=t.type==='Equity'?'1040':'1030';
+    if(t.txnType==='subscription'){
+      auto.push(jEntry(t.date,`MF subscription — ${t.fund}`,'mftxn',t.id,[
+        {account:acct,debit:t.amount||0,credit:0},{account:'1010',debit:0,credit:t.amount||0},
+      ]));
+    } else {
+      auto.push(jEntry(t.date,`MF redemption — ${t.fund}`,'mftxn',t.id,[
+        {account:'1010',debit:t.amount||0,credit:0},{account:acct,debit:0,credit:t.amount||0},
+      ]));
+    }
+  });
+
+  auto.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  journalEntries=[...manual,...auto];
+}
+
+/* Sums debits/credits per account across an optional date range, and returns
+   the signed balance in each account's natural direction (debit accounts
+   positive when debits exceed credits, credit accounts positive when
+   credits exceed debits). */
+function ledgerBalances(fromDate,toDate){
+  const totals={};
+  chartOfAccounts.forEach(a=>{ totals[a.code]={debit:0,credit:0}; });
+  journalEntries.forEach(e=>{
+    if(fromDate && e.date<fromDate) return;
+    if(toDate && e.date>toDate) return;
+    e.lines.forEach(l=>{
+      if(!totals[l.account]) totals[l.account]={debit:0,credit:0};
+      totals[l.account].debit+=l.debit||0;
+      totals[l.account].credit+=l.credit||0;
+    });
+  });
+  const balances={};
+  Object.keys(totals).forEach(code=>{
+    const a=coaAccount(code);
+    const nb=a?a.normalBalance:'debit';
+    balances[code]=nb==='debit'?(totals[code].debit-totals[code].credit):(totals[code].credit-totals[code].debit);
+  });
+  return balances;
+}
+
+/* ── Chart of Accounts UI ── */
+function saveCOAAccount(){
+  const code=document.getElementById('coa-code').value.trim();
+  const name=document.getElementById('coa-name').value.trim();
+  const type=document.getElementById('coa-type').value;
+  const normalBalance=document.getElementById('coa-normal').value;
+  const note=document.getElementById('coa-note').value.trim();
+  const editId=document.getElementById('coa-edit-id').value;
+  if(!code||!name){alert('Enter account code and name.');return;}
+  if(editId){
+    const idx=chartOfAccounts.findIndex(a=>a.code===editId);
+    if(idx>-1){
+      if(chartOfAccounts[idx].system){alert("Built-in accounts can't be edited — add a custom account instead.");return;}
+      chartOfAccounts[idx]={...chartOfAccounts[idx],code,name,type,normalBalance,note};
+    }
+  } else {
+    if(chartOfAccounts.find(a=>a.code===code)){alert('That account code already exists.');return;}
+    chartOfAccounts.push({code,name,type,normalBalance,note,system:false});
+  }
+  cancelEditCOA();
+  save(); renderCOA(); renderLedger();
+}
+function loadCOAForEdit(code){
+  const a=chartOfAccounts.find(x=>x.code===code);
+  if(!a||a.system) return;
+  document.getElementById('coa-code').value=a.code;
+  document.getElementById('coa-name').value=a.name;
+  document.getElementById('coa-type').value=a.type;
+  document.getElementById('coa-normal').value=a.normalBalance;
+  document.getElementById('coa-note').value=a.note||'';
+  document.getElementById('coa-edit-id').value=a.code;
+  document.getElementById('coa-form-title').textContent='Edit account';
+  document.getElementById('coa-edit-badge').style.display='flex';
+  document.getElementById('coa-submit-btn').textContent='Update ↗';
+  document.getElementById('coa-form-title').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelEditCOA(){
+  ['coa-code','coa-name','coa-note','coa-edit-id'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('coa-type').value='Asset';
+  document.getElementById('coa-normal').value='debit';
+  document.getElementById('coa-form-title').textContent='Add account';
+  document.getElementById('coa-edit-badge').style.display='none';
+  document.getElementById('coa-submit-btn').textContent='Save ↗';
+}
+function removeCOAAccount(code){
+  const a=chartOfAccounts.find(x=>x.code===code);
+  if(!a||a.system){alert("Built-in accounts can't be removed.");return;}
+  if(journalEntries.some(e=>e.lines.some(l=>l.account===code)) && !confirm(`Account ${code} has journal postings against it. Remove it anyway? Those postings will keep the old code but it will no longer appear in the register.`)) return;
+  chartOfAccounts=chartOfAccounts.filter(x=>x.code!==code);
+  save(); renderCOA(); renderLedger();
+}
+const COA_TYPE_TAG={Asset:'tag-blue',Liability:'tag-red',Equity:'tag-purple',Income:'tag-green',Expense:'tag-amber'};
+function renderCOA(){
+  const el=document.getElementById('coa-table');
+  if(!el) return;
+  if(!chartOfAccounts.length){el.innerHTML='<div class="empty">No accounts yet.</div>';return;}
+  const balances=ledgerBalances();
+  const sorted=[...chartOfAccounts].sort((a,b)=>a.code.localeCompare(b.code));
+  let h='<div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Normal Bal.</th><th class="num">Current Balance</th><th>Note</th><th></th></tr></thead><tbody>';
+  ['Asset','Liability','Equity','Income','Expense'].forEach(type=>{
+    const rows=sorted.filter(a=>a.type===type);
+    if(!rows.length) return;
+    h+=`<tr class="group-row"><td colspan="7">${type}</td></tr>`;
+    rows.forEach(a=>{
+      const bal=balances[a.code]||0;
+      h+=`<tr class="${a.system?'':'tr-hover'}" ${a.system?'':`onclick="loadCOAForEdit('${a.code}')" title="Click to edit"`}>
+        <td><strong>${a.code}</strong></td>
+        <td>${a.name}${a.system?' <span class="tag tag-grey" style="font-size:9px">SYSTEM</span>':''}</td>
+        <td><span class="tag ${COA_TYPE_TAG[a.type]||'tag-grey'}">${a.type}</span></td>
+        <td style="font-size:11px;color:var(--ink3);text-transform:capitalize">${a.normalBalance}</td>
+        <td class="num" style="font-weight:600">${fmt(bal)}</td>
+        <td style="font-size:11px;color:var(--ink3)">${a.note||''}</td>
+        <td onclick="event.stopPropagation()">${a.system?'':`<button class="btn-danger btn-sm" onclick="removeCOAAccount('${a.code}')">✕</button>`}</td>
+      </tr>`;
+    });
+  });
+  el.innerHTML=h+'</tbody></table></div>';
+}
+
+/* ── Journal Entries UI (manual/adjusting entries — auto entries are read-only here) ── */
+let jeLines=[{account:'',debit:0,credit:0},{account:'',debit:0,credit:0}];
+
+function addJournalLine(){
+  jeLines.push({account:'',debit:0,credit:0});
+  renderJELinesForm();
+}
+function removeJournalLine(idx){
+  if(jeLines.length<=2){alert('An entry needs at least two lines.');return;}
+  jeLines.splice(idx,1);
+  renderJELinesForm();
+}
+function updateJELine(idx,field,val){
+  jeLines[idx][field]=field==='account'?val:(parseFloat(val)||0);
+  renderJEBalanceCheck();
+}
+function renderJELinesForm(){
+  const el=document.getElementById('je-lines');
+  if(!el) return;
+  const accts=[...chartOfAccounts].sort((a,b)=>a.code.localeCompare(b.code));
+  let h='';
+  jeLines.forEach((l,i)=>{
+    const opts=accts.map(a=>`<option value="${a.code}" ${a.code===l.account?'selected':''}>${a.code} — ${a.name}</option>`).join('');
+    h+=`<div class="row" style="margin-bottom:6px">
+      <div class="f2"><label>Account</label><select onchange="updateJELine(${i},'account',this.value)"><option value="">— Select —</option>${opts}</select></div>
+      <div class="f1"><label>Debit (₦)</label><input type="number" min="0" step="0.01" value="${l.debit||''}" oninput="updateJELine(${i},'debit',this.value)"/></div>
+      <div class="f1"><label>Credit (₦)</label><input type="number" min="0" step="0.01" value="${l.credit||''}" oninput="updateJELine(${i},'credit',this.value)"/></div>
+      <div style="flex:0"><button class="btn-danger btn-sm" onclick="removeJournalLine(${i})">✕</button></div>
+    </div>`;
+  });
+  el.innerHTML=h;
+  renderJEBalanceCheck();
+}
+function renderJEBalanceCheck(){
+  const el=document.getElementById('je-balance-check');
+  if(!el) return;
+  const dr=jeLines.reduce((s,l)=>s+(l.debit||0),0);
+  const cr=jeLines.reduce((s,l)=>s+(l.credit||0),0);
+  const balanced=dr>0 && Math.abs(dr-cr)<0.01;
+  el.innerHTML=`Dr ${fmt(dr)} / Cr ${fmt(cr)} — <span style="color:${balanced?'var(--green)':'var(--red)'}">${balanced?'✓ Balanced':'✕ Not balanced'}</span>`;
+}
+function saveJournalEntry(){
+  const date=document.getElementById('je-date').value;
+  const memo=document.getElementById('je-memo').value.trim();
+  const editId=document.getElementById('je-edit-id').value;
+  if(!date){alert('Choose a date.');return;}
+  const lines=jeLines.filter(l=>l.account&&((l.debit||0)>0||(l.credit||0)>0)).map(l=>({account:l.account,debit:l.debit||0,credit:l.credit||0}));
+  if(lines.length<2){alert('Add at least two lines with an account and an amount.');return;}
+  const dr=lines.reduce((s,l)=>s+l.debit,0);
+  const cr=lines.reduce((s,l)=>s+l.credit,0);
+  if(Math.abs(dr-cr)>=0.01){alert('Debits and credits must balance before this entry can be posted.');return;}
+  if(editId){
+    const idx=journalEntries.findIndex(e=>e.id===editId);
+    if(idx>-1) journalEntries[idx]={...journalEntries[idx],date,memo,lines};
+  } else {
+    journalEntries.push({id:'je_'+uid(),date,memo,refType:'manual',refId:null,auto:false,lines});
+  }
+  cancelEditJournalEntry();
+  save(); renderJournal(); renderLedger(); renderFinancialStatements(); renderCOA();
+}
+function loadJournalEntryForEdit(id){
+  const e=journalEntries.find(x=>x.id===id);
+  if(!e) return;
+  if(e.auto){ alert("Auto-generated entries can't be edited directly — edit the source record (purchase, dividend, cash flow, or MF transaction) instead and the ledger will regenerate."); return; }
+  document.getElementById('je-date').value=e.date;
+  document.getElementById('je-memo').value=e.memo||'';
+  jeLines=e.lines.map(l=>({...l}));
+  renderJELinesForm();
+  document.getElementById('je-edit-id').value=id;
+  document.getElementById('je-form-title').textContent='Edit manual entry';
+  document.getElementById('je-edit-badge').style.display='flex';
+  document.getElementById('je-submit-btn').textContent='Update entry ↗';
+  document.getElementById('je-form-title').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelEditJournalEntry(){
+  document.getElementById('je-date').value='';
+  document.getElementById('je-memo').value='';
+  document.getElementById('je-edit-id').value='';
+  jeLines=[{account:'',debit:0,credit:0},{account:'',debit:0,credit:0}];
+  renderJELinesForm();
+  document.getElementById('je-form-title').textContent='Add manual / adjusting entry';
+  document.getElementById('je-edit-badge').style.display='none';
+  document.getElementById('je-submit-btn').textContent='Post entry ↗';
+}
+function removeJournalEntry(id){
+  const e=journalEntries.find(x=>x.id===id);
+  if(!e) return;
+  if(e.auto){alert("Auto-generated entries can't be deleted directly — remove or edit the source record instead.");return;}
+  if(!confirm('Remove this journal entry?')) return;
+  journalEntries=journalEntries.filter(x=>x.id!==id);
+  save(); renderJournal(); renderLedger(); renderFinancialStatements(); renderCOA();
+}
+function renderJournal(){
+  const el=document.getElementById('journal-table');
+  if(!el) return;
+  if(!journalEntries.length){el.innerHTML='<div class="empty">No journal entries yet.</div>';return;}
+  const sorted=[...journalEntries].sort((a,b)=>b.date.localeCompare(a.date));
+  let h='<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Memo</th><th>Source</th><th>Lines</th><th class="num">Debit</th><th class="num">Credit</th><th></th></tr></thead><tbody>';
+  sorted.forEach(e=>{
+    const dr=e.lines.reduce((s,l)=>s+(l.debit||0),0);
+    const cr=e.lines.reduce((s,l)=>s+(l.credit||0),0);
+    const linesHtml=e.lines.map(l=>`<div style="font-size:11px">${l.debit>0?`Dr ${coaName(l.account)} — ${fmtN(l.debit)}`:`Cr ${coaName(l.account)} — ${fmtN(l.credit)}`}</div>`).join('');
+    h+=`<tr class="${e.auto?'':'tr-hover'}" ${e.auto?'':`onclick="loadJournalEntryForEdit('${e.id}')" title="Click to edit"`}>
+      <td>${e.date}</td>
+      <td style="font-size:12px">${e.memo||''}</td>
+      <td>${e.auto?`<span class="tag tag-grey" style="font-size:9px">AUTO · ${e.refType||''}</span>`:'<span class="tag tag-amber" style="font-size:9px">MANUAL</span>'}</td>
+      <td>${linesHtml}</td>
+      <td class="num">${fmt(dr)}</td>
+      <td class="num">${fmt(cr)}</td>
+      <td onclick="event.stopPropagation()">${e.auto?'':`<button class="btn-danger btn-sm" onclick="removeJournalEntry('${e.id}')">✕</button>`}</td>
+    </tr>`;
+  });
+  h+=`<tr class="tfoot"><td colspan="7">${journalEntries.length} entries</td></tr>`;
+  el.innerHTML=h+'</tbody></table></div>';
+}
+
+/* ── General Ledger UI ── */
+function renderLedger(){
+  const sel=document.getElementById('ledger-account');
+  if(!sel) return;
+  const prev=sel.value;
+  const sortedAccts=[...chartOfAccounts].sort((a,b)=>a.code.localeCompare(b.code));
+  sel.innerHTML=sortedAccts.map(a=>`<option value="${a.code}">${a.code} — ${a.name}</option>`).join('');
+  if(prev&&chartOfAccounts.find(a=>a.code===prev)) sel.value=prev;
+  else if(sortedAccts.length) sel.value=sortedAccts[0].code;
+
+  const code=sel.value;
+  const el=document.getElementById('ledger-table');
+  if(!el||!code) return;
+  const acct=coaAccount(code);
+  if(!acct){el.innerHTML='<div class="empty">Select an account.</div>';return;}
+  const entries=journalEntries.filter(e=>e.lines.some(l=>l.account===code)).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!entries.length){el.innerHTML=`<div class="empty">No postings yet in ${acct.name}.</div>`;return;}
+  let running=0;
+  let h=`<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Memo</th><th>Source</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr></thead><tbody>`;
+  entries.forEach(e=>{
+    const line=e.lines.find(l=>l.account===code);
+    const dr=line.debit||0, cr=line.credit||0;
+    running += acct.normalBalance==='debit' ? (dr-cr) : (cr-dr);
+    h+=`<tr>
+      <td>${e.date}</td>
+      <td style="font-size:12px">${e.memo||''}</td>
+      <td>${e.auto?`<span class="tag tag-grey" style="font-size:9px">${e.refType||'auto'}</span>`:'<span class="tag tag-amber" style="font-size:9px">manual</span>'}</td>
+      <td class="num">${dr>0?fmt(dr):'—'}</td>
+      <td class="num">${cr>0?fmt(cr):'—'}</td>
+      <td class="num" style="font-weight:600">${fmt(running)}</td>
+    </tr>`;
+  });
+  h+=`<tr class="tfoot"><td colspan="5">Closing balance — ${acct.name}</td><td class="num">${fmt(running)}</td></tr>`;
+  el.innerHTML=h+'</tbody></table></div>';
+}
+
+/* ── Financial Statements ── */
+function computeIncomeStatement(from,to){
+  const bal=ledgerBalances(from,to);
+  const incomeAccts=chartOfAccounts.filter(a=>a.type==='Income');
+  const expenseAccts=chartOfAccounts.filter(a=>a.type==='Expense');
+  const income=incomeAccts.map(a=>({code:a.code,name:a.name,amount:bal[a.code]||0})).filter(x=>Math.abs(x.amount)>0.005);
+  const expenses=expenseAccts.map(a=>({code:a.code,name:a.name,amount:bal[a.code]||0})).filter(x=>Math.abs(x.amount)>0.005);
+  const totalIncome=income.reduce((s,x)=>s+x.amount,0);
+  const totalExpenses=expenses.reduce((s,x)=>s+x.amount,0);
+  return {income,expenses,totalIncome,totalExpenses,netIncome:totalIncome-totalExpenses};
+}
+function computeUnrealizedGain(){
+  return holdings.reduce((s,h)=>{
+    const mv=(getLivePrice(h.ticker)||h.price)*h.shares;
+    const cost=getTotalCost(h.ticker,h.plan);
+    return s + (cost>0 ? (mv-cost) : 0);
+  },0);
+}
+function computeCashFlowStatement(from,to){
+  let operating=0, investing=0, financing=0;
+  journalEntries.forEach(e=>{
+    if(from && e.date<from) return;
+    if(to && e.date>to) return;
+    const cashLine=e.lines.find(l=>l.account==='1010');
+    if(!cashLine) return;
+    const net=(cashLine.debit||0)-(cashLine.credit||0);
+    if(e.refType==='dividend'||e.refType==='cashflow') operating+=net;
+    else if(e.refType==='purchase'||e.refType==='mftxn') investing+=net;
+    else financing+=net;
+  });
+  return {operating, investing, financing, netChange:operating+investing+financing};
+}
+function renderFinancialStatements(){
+  const fromEl=document.getElementById('fs-from');
+  const toEl=document.getElementById('fs-to');
+  if(!fromEl||!toEl) return;
+  if(!toEl.value) toEl.value=today;
+  if(!fromEl.value){
+    const d=new Date(); d.setMonth(d.getMonth()-1);
+    fromEl.value=d.toISOString().split('T')[0];
+  }
+  const from=fromEl.value, to=toEl.value;
+  const nw=computeNetWorth();
+
+  const posEl=document.getElementById('fs-position-card');
+  if(posEl){
+    posEl.innerHTML=`
+      <div class="card-title">Statement of Financial Position — as of ${new Date().toLocaleDateString()}</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Account</th><th class="num">Amount (₦)</th></tr></thead><tbody>
+        <tr class="group-row"><td colspan="2">Assets</td></tr>
+        <tr><td>1010 · Cash &amp; Bank Accounts</td><td class="num">${fmt(nw.cashNGN)}</td></tr>
+        <tr><td>1020 · NGX Stock Investments (at market)</td><td class="num">${fmt(nw.ngxNGN)}</td></tr>
+        <tr><td>1030/1040 · Mutual Funds</td><td class="num">${fmt(nw.mfNGN)}</td></tr>
+        <tr><td>1050 · US Stocks/ETFs</td><td class="num">${fmt(nw.usStocksNGN)}</td></tr>
+        <tr><td>1060 · Cryptocurrency</td><td class="num">${fmt(nw.cryptoNGN)}</td></tr>
+        <tr><td>1070 · Real Estate</td><td class="num">${fmt(nw.reNGN)}</td></tr>
+        <tr><td>1080 · Retirement/Pension</td><td class="num">${fmt(nw.retNGN)}</td></tr>
+        <tr class="tfoot"><td>Total Assets</td><td class="num">${fmt(nw.totalAssets)}</td></tr>
+        <tr class="group-row"><td colspan="2">Liabilities</td></tr>
+        <tr><td>2010–2090 · Loans, Cards &amp; Other Liabilities</td><td class="num" style="color:var(--red)">${fmt(nw.liabNGN)}</td></tr>
+        <tr class="tfoot"><td>Total Liabilities</td><td class="num" style="color:var(--red)">${fmt(nw.liabNGN)}</td></tr>
+        <tr class="tfoot" style="border-top:1.5px solid var(--ink)"><td><strong>Net Assets (Equity)</strong></td><td class="num" style="font-weight:700;color:${nw.netWorth>=0?'var(--green)':'var(--red)'}">${fmt(nw.netWorth)}</td></tr>
+      </tbody></table></div>`;
+  }
+
+  const inc=computeIncomeStatement(from,to);
+  const unrealized=computeUnrealizedGain();
+  const incEl=document.getElementById('fs-income-card');
+  if(incEl){
+    let rows=''; inc.income.forEach(x=>{ rows+=`<tr><td>${x.code} · ${x.name}</td><td class="num" style="color:var(--green)">${fmt(x.amount)}</td></tr>`; });
+    let erows=''; inc.expenses.forEach(x=>{ erows+=`<tr><td>${x.code} · ${x.name}</td><td class="num" style="color:var(--red)">${fmt(x.amount)}</td></tr>`; });
+    incEl.innerHTML=`
+      <div class="card-title">Statement of Comprehensive Income — ${from} to ${to}</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Account</th><th class="num">Amount (₦)</th></tr></thead><tbody>
+        <tr class="group-row"><td colspan="2">Income</td></tr>
+        ${rows||'<tr><td colspan="2" style="color:var(--ink3);font-size:12px">No income posted in this period.</td></tr>'}
+        <tr class="tfoot"><td>Total Income</td><td class="num">${fmt(inc.totalIncome)}</td></tr>
+        <tr class="group-row"><td colspan="2">Expenses</td></tr>
+        ${erows||'<tr><td colspan="2" style="color:var(--ink3);font-size:12px">No expenses posted in this period.</td></tr>'}
+        <tr class="tfoot"><td>Total Expenses</td><td class="num" style="color:var(--red)">${fmt(inc.totalExpenses)}</td></tr>
+        <tr class="tfoot" style="border-top:1.5px solid var(--ink)"><td><strong>Net Income for period</strong></td><td class="num" style="font-weight:700;color:${inc.netIncome>=0?'var(--green)':'var(--red)'}">${fmt(inc.netIncome)}</td></tr>
+        <tr><td style="color:var(--ink3);font-size:12px">Memo: cumulative unrealized gain/(loss) on current stock holdings (not a period flow)</td><td class="num" style="color:${unrealized>=0?'var(--green)':'var(--red)'}">${fmt(unrealized)}</td></tr>
+      </tbody></table></div>`;
+  }
+
+  const cf=computeCashFlowStatement(from,to);
+  const cfEl=document.getElementById('fs-cashflow-card');
+  if(cfEl){
+    cfEl.innerHTML=`
+      <div class="card-title">Statement of Cash Flows — ${from} to ${to}</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Activity</th><th class="num">Net Cash (₦)</th></tr></thead><tbody>
+        <tr><td>Operating activities <span style="color:var(--ink3);font-size:11px">(dividends, income &amp; expenses)</span></td><td class="num">${fmt(cf.operating)}</td></tr>
+        <tr><td>Investing activities <span style="color:var(--ink3);font-size:11px">(stock &amp; fund purchases/sales)</span></td><td class="num">${fmt(cf.investing)}</td></tr>
+        <tr><td>Financing activities</td><td class="num">${fmt(cf.financing)}</td></tr>
+        <tr class="tfoot" style="border-top:1.5px solid var(--ink)"><td><strong>Net change in cash</strong></td><td class="num" style="font-weight:700;color:${cf.netChange>=0?'var(--green)':'var(--red)'}">${fmt(cf.netChange)}</td></tr>
+      </tbody></table></div>
+      <div class="hint">Derived from the auto-generated journal — cash balance edits made directly on the Cash &amp; Bank Accounts page aren't transactional and won't appear here.</div>`;
+  }
+
+  const changesEl=document.getElementById('fs-changes-card');
+  if(changesEl){
+    const openingSnap=[...netWorthHistory].filter(h=>h.date<=from).sort((a,b)=>b.date.localeCompare(a.date))[0];
+    const closingSnap=[...netWorthHistory].filter(h=>h.date<=to).sort((a,b)=>b.date.localeCompare(a.date))[0];
+    const opening=openingSnap?openingSnap.netWorth:0;
+    const closingActual=(to>=today)?nw.netWorth:(closingSnap?closingSnap.netWorth:opening);
+    const impliedClosing=opening+inc.netIncome;
+    const otherMovements=closingActual-impliedClosing;
+    changesEl.innerHTML=`
+      <div class="card-title">Statement of Changes in Net Assets — ${from} to ${to}</div>
+      <div class="tbl-wrap"><table><thead><tr><th></th><th class="num">Amount (₦)</th></tr></thead><tbody>
+        <tr><td>Opening net assets ${openingSnap?'('+openingSnap.date+' snapshot)':'(no snapshot on/before this date — recorded as ₦0)'}</td><td class="num">${fmt(opening)}</td></tr>
+        <tr><td>+ Net income for period</td><td class="num" style="color:${inc.netIncome>=0?'var(--green)':'var(--red)'}">${fmt(inc.netIncome)}</td></tr>
+        <tr><td>+/− Other movements <span style="color:var(--ink3);font-size:11px">(market value changes, manual balance corrections, snapshot gaps)</span></td><td class="num">${fmt(otherMovements)}</td></tr>
+        <tr class="tfoot" style="border-top:1.5px solid var(--ink)"><td><strong>Closing net assets</strong></td><td class="num" style="font-weight:700">${fmt(closingActual)}</td></tr>
+      </tbody></table></div>
+      <div class="hint">Opening/closing figures use your saved Net Worth snapshots (Net Worth → history) where available — save one at the start and end of a period to make this precise. Otherwise closing defaults to today's live net worth.</div>`;
+  }
+}
+
+/* ── Corporate Actions log ── */
+function saveCorporateAction(){
+  const date=document.getElementById('ca-date').value;
+  const ticker=document.getElementById('ca-ticker').value.trim().toUpperCase();
+  const type=document.getElementById('ca-type').value;
+  const ratio=document.getElementById('ca-ratio').value.trim();
+  const note=document.getElementById('ca-note').value.trim();
+  if(!date||!ticker){alert('Enter date and ticker.');return;}
+  corporateActions.push({id:'ca_'+uid(),date,ticker,type,ratio,note});
+  corporateActions.sort((a,b)=>b.date.localeCompare(a.date));
+  ['ca-ticker','ca-ratio','ca-note'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  save(); renderCorporateActions();
+}
+function removeCorporateAction(id){
+  if(!confirm('Remove this corporate action record?')) return;
+  corporateActions=corporateActions.filter(x=>x.id!==id);
+  save(); renderCorporateActions();
+}
+const CA_TYPE_TAG={split:'tag-blue',bonus:'tag-green',rename:'tag-purple',other:'tag-grey'};
+function renderCorporateActions(){
+  const el=document.getElementById('corpactions-table');
+  if(!el) return;
+  if(!corporateActions.length){el.innerHTML='<div class="empty">No corporate actions logged yet.</div>';return;}
+  let h='<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Ticker</th><th>Type</th><th>Ratio</th><th>Note</th><th></th></tr></thead><tbody>';
+  corporateActions.forEach(c=>{
+    h+=`<tr>
+      <td>${c.date}</td><td><strong>${c.ticker}</strong></td>
+      <td><span class="tag ${CA_TYPE_TAG[c.type]||'tag-grey'}">${c.type}</span></td>
+      <td>${c.ratio||'—'}</td>
+      <td style="font-size:12px;color:var(--ink2)">${c.note||''}</td>
+      <td><button class="btn-danger btn-sm" onclick="removeCorporateAction('${c.id}')">✕</button></td>
+    </tr>`;
+  });
+  el.innerHTML=h+'</tbody></table></div>';
 }
 
 /* ── Corporate action: ticker/name changes ──
@@ -2231,6 +3087,16 @@ function closeMFMenu(){
   document.getElementById('mf-submenu').classList.remove('open');
   document.getElementById('mf-toggle').classList.remove('open');
 }
+function toggleNGXMarketMenu(btn){
+  const sub=document.getElementById('ngxmarket-submenu');
+  const isOpen=sub.classList.contains('open');
+  sub.classList.toggle('open',!isOpen);
+  btn.classList.toggle('open',!isOpen);
+}
+function closeNGXMarketMenu(){
+  document.getElementById('ngxmarket-submenu').classList.remove('open');
+  document.getElementById('ngxmarket-toggle').classList.remove('open');
+}
 function toggleStocksMenu(btn){
   const sub=document.getElementById('stocks-submenu');
   const isOpen=sub.classList.contains('open');
@@ -2297,6 +3163,12 @@ function renderAll(){
   populatePortfolioDropdowns();
   populateMFFundDropdown();
   populateDataLists();
+  rebuildAutoJournal();
+  renderCOA();
+  renderJournal();
+  renderLedger();
+  renderFinancialStatements();
+  renderCorporateActions();
 }
 
 /* ── Populate all portfolio dropdowns from the portfolios register ── */
@@ -2316,7 +3188,7 @@ function populatePortfolioDropdowns(){
 function populateDataLists(){
   // All NGX tickers for general lists (purchases, dividends, projection etc.)
   const allTickers=[...new Set([...NGX_STOCKS,...holdings.map(h=>h.ticker)])];
-  ['ngx-list','ngx-list2','ngx-list3','ngx-list4'].forEach(id=>{
+  ['ngx-list','ngx-list2','ngx-list3','ngx-list4','ngx-list5'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.innerHTML=allTickers.map(t=>`<option value="${t}">`).join('');
   });
@@ -2420,6 +3292,13 @@ let currencies = [ // extensible currency register — base is NGN, add any othe
   {code:'NGN', symbol:'₦', name:'Nigerian Naira', rateToNGN:1, updatedAt:'', source:'base'},
   {code:'USD', symbol:'$', name:'US Dollar', rateToNGN:1600, updatedAt:'', source:'default'},
 ];
+
+/* ═══════════════════════════════════════════
+   ACCOUNTING — Chart of Accounts / General Ledger / Journal
+═══════════════════════════════════════════ */
+let chartOfAccounts = []; // {code, name, type:'Asset'|'Liability'|'Equity'|'Income'|'Expense', normalBalance:'debit'|'credit', note, system:true/false}
+let journalEntries  = []; // {id, date, memo, refType, refId, auto:true/false, lines:[{account, debit, credit}]}
+let corporateActions= []; // {id, date, ticker, type:'split'|'bonus'|'rename'|'other', ratio, note}
 
 /* ── sidebar toggle ── */
 function toggleAlertsMenu(btn){
@@ -4539,6 +5418,229 @@ function prefillFromStocks(symbol){
   },100);
 }
 
+/* ═══════════════════════════════════════════
+   NGX PURCHASE CALCULATOR
+   Fee/CGT estimator for a trade. Ticker search and live price are linked
+   directly to the app's own NGX Stock List (ngxStocks / getLivePrice),
+   not a separate data source — so it always matches Stock List refreshes.
+═══════════════════════════════════════════ */
+const NGXC_BROKERS={
+  stanbic:      {n:'Stanbic IBTC Stockbrokers',brk:1.35,sec:0.3,ngx:0.005,cscs:0.3,st:0.075,vat:7.5,i:'Full-service. Commission 1.35% (min ₦100). Standard Bank Group subsidiary.'},
+  cardinalstone:{n:'CardinalStone Securities',  brk:0.75,sec:0.3,ngx:0.005,cscs:0.3,st:0.075,vat:7.5,i:'Boutique investment bank. 0.75% commission.'},
+  fbnquest:     {n:'FBNQuest Securities',        brk:1.35,sec:0.3,ngx:0.005,cscs:0.3,st:0.075,vat:7.5,i:'FBN Holdings subsidiary. 1.35% commission.'},
+  arm:          {n:'ARM Securities',             brk:1.0, sec:0.3,ngx:0.005,cscs:0.3,st:0.075,vat:7.5,i:'ARM Investment Managers subsidiary. 1.0% commission.'},
+  vetiva:       {n:'Vetiva Securities',          brk:0.75,sec:0.3,ngx:0.005,cscs:0.3,st:0.075,vat:7.5,i:'0.75% commission. Strong institutional focus.'},
+  chapelhill:   {n:'Chapel Hill Denham',         brk:1.35,sec:0.3,ngx:0.005,cscs:0.3,st:0.075,vat:7.5,i:'Independent investment banking. 1.35% commission.'},
+  coronation:   {n:'Coronation Securities',      brk:0.75,sec:0.3,ngx:0.005,cscs:0.3,st:0.075,vat:7.5,i:'Coronation Merchant Bank subsidiary. 0.75% commission.'},
+  meristem:     {n:'Meristem Securities',        brk:0.75,sec:0.3,ngx:0.005,cscs:0.3,st:0.075,vat:7.5,i:"One of Nigeria's largest independent brokers. 0.75% commission."},
+  rencap:       {n:'Renaissance Capital',        brk:0.5, sec:0.3,ngx:0.005,cscs:0.3,st:0.075,vat:7.5,i:'Emerging-market investment bank. 0.5% commission.'},
+  custom:       {n:'Custom Entry',               brk:1.35,sec:0.3,ngx:0.005,cscs:0.3,st:0.075,vat:7.5,i:'Edit all fee fields manually below.'},
+};
+let ngxcMode='buy';
+
+function ngxcVal(id){ return parseFloat(document.getElementById(id)?.value)||0; }
+
+function setNGXCalcMode(m){
+  ngxcMode=m;
+  ['buy','sell','round'].forEach(x=>document.getElementById('ngxc-mode-'+x).classList.toggle('sel',x===m));
+  const isBuy=m==='buy', isSell=m==='sell', isRound=m==='round';
+  document.getElementById('ngxc-order-title').textContent=isRound?'Broker & Order Details':`Broker & ${isBuy?'Buy':'Sell'} Order`;
+  document.getElementById('ngxc-single-order').style.display=isRound?'none':'flex';
+  document.getElementById('ngxc-sell-extra').style.display=isSell?'flex':'none';
+  document.getElementById('ngxc-round-inputs').style.display=isRound?'block':'none';
+  document.getElementById('ngxc-single-bd').style.display=isRound?'none':'block';
+  document.getElementById('ngxc-round-bd').style.display=isRound?'block':'none';
+  document.getElementById('ngxc-lbl-price').textContent=isSell?'Sell Price (₦/share)':'Buy Price (₦/share)';
+  document.getElementById('ngxc-bd-title').textContent=isSell?'Sell Proceeds Breakdown':'Buy Cost Breakdown';
+  document.getElementById('ngxc-stamp-lbl').textContent=isSell?'Stamp Duty (N/A on sales)':'Stamp Duty (%)';
+  document.getElementById('ngxc-f-st').disabled=isSell;
+  document.getElementById('ngxc-qc-label').textContent=isSell?'Target proceeds I need (₦)':'Budget I want to invest (₦)';
+  document.getElementById('ngxc-fee-note').innerHTML=isBuy
+    ?'Buy fees: stamp duty (0.075%) applies to purchases only. VAT (7.5%) applies to brokerage commission only. Minimum brokerage ≈ ₦100.'
+    :isSell
+    ?'Sell fees: no stamp duty on sales. CGT (default 10%) applies to gains above your original cost price per the Finance Act 2021.'
+    :'Round trip: stamp duty on the buy leg only; CGT on the net gain at sell. Minimum brokerage applies per leg.';
+  renderNGXCalc();
+}
+
+function onNGXCalcTickerInput(val){
+  const ticker=val.trim().toUpperCase();
+  const s=ngxStocks.find(x=>x.symbol===ticker);
+  document.getElementById('ngxc-company').value=s?s.name:'';
+  document.getElementById('ngxc-sector').value=s?s.sector:'';
+  const price=getLivePrice(ticker);
+  if(price && !document.getElementById('ngxc-price').value) document.getElementById('ngxc-price').value=price;
+  if(price && !document.getElementById('ngxc-rt-buy').value) document.getElementById('ngxc-rt-buy').value=price;
+  renderNGXCalc();
+}
+
+function applyNGXCalcBroker(code){
+  const b=NGXC_BROKERS[code];
+  const infoEl=document.getElementById('ngxc-broker-info');
+  if(!b){ infoEl.textContent='Select a broker to see their fee profile.'; return; }
+  document.getElementById('ngxc-f-brk').value=b.brk;
+  document.getElementById('ngxc-f-sec').value=b.sec;
+  document.getElementById('ngxc-f-ngx').value=b.ngx;
+  document.getElementById('ngxc-f-cscs').value=b.cscs;
+  document.getElementById('ngxc-f-st').value=b.st;
+  document.getElementById('ngxc-f-vat').value=b.vat;
+  infoEl.innerHTML=`<strong>${b.n}</strong><br>${b.i}`;
+  renderNGXCalc();
+}
+
+function ngxcCalcFees(gross,isSell){
+  const min100=gross>0?100:0;
+  const brk=Math.max(gross*(ngxcVal('ngxc-f-brk')/100),min100);
+  const vat=brk*(ngxcVal('ngxc-f-vat')/100);
+  const sec=gross*(ngxcVal('ngxc-f-sec')/100);
+  const ngxl=gross*(ngxcVal('ngxc-f-ngx')/100);
+  const cscs=gross*(ngxcVal('ngxc-f-cscs')/100);
+  const st=isSell?0:gross*(ngxcVal('ngxc-f-st')/100);
+  return {brk,vat,sec,ngx:ngxl,cscs,st,total:brk+vat+sec+ngxl+cscs+st};
+}
+
+function ngxCalcFromAmount(){
+  const amount=ngxcVal('ngxc-qc-amount');
+  const price=ngxcMode==='sell'?ngxcVal('ngxc-price'):ngxcVal('ngxc-price');
+  const resEl=document.getElementById('ngxc-qc-result');
+  if(!amount||!price){ resEl.textContent='Enter a price and amount above to see how many units it buys (or sells), fees included.'; return; }
+  const isSell=ngxcMode==='sell';
+  if(!isSell){
+    let n=Math.floor(amount/price);
+    while(n>0){ const gross=n*price; if(gross+ngxcCalcFees(gross,false).total<=amount) break; n--; }
+    const gross=n*price, f=ngxcCalcFees(gross,false), totalCost=gross+f.total;
+    resEl.innerHTML=`<strong>${n.toLocaleString()} units</strong> — total cost ${fmt(totalCost)}, remaining ${fmt(amount-totalCost)}`;
+  } else {
+    let n=Math.ceil(amount/price);
+    for(let i=0;i<2000;i++){ const gross=n*price; if(gross-ngxcCalcFees(gross,true).total>=amount) break; n++; }
+    const gross=n*price, f=ngxcCalcFees(gross,true), net=gross-f.total;
+    resEl.innerHTML=`<strong>${n.toLocaleString()} units</strong> — net proceeds ${fmt(net)}, surplus ${fmt(net-amount)}`;
+  }
+}
+
+function renderNGXCalc(){
+  const ticker=(document.getElementById('ngxc-ticker')?.value||'').trim().toUpperCase();
+  const priceMetricsEl=document.getElementById('ngxc-price-metrics');
+  if(priceMetricsEl){
+    if(ticker){
+      const live=getLivePrice(ticker);
+      const chgStr=getLiveChange(ticker);
+      const chgNum=parseFloat(chgStr||0);
+      const chgColor=chgNum>0?'var(--green)':chgNum<0?'var(--red)':'var(--ink3)';
+      priceMetricsEl.innerHTML=`
+        <div class="metric metric-c1"><div class="metric-label">Live price (₦)</div><div class="metric-val" style="color:var(--blue)">${live?fmtN(live):'—'}</div>${priceCache[ticker]?'<div class="metric-sub" style="color:var(--teal)">●LIVE</div>':''}</div>
+        <div class="metric metric-c2"><div class="metric-label">Day change</div><div class="metric-val" style="color:${chgColor}">${chgStr||'—'}</div></div>`;
+    } else {
+      priceMetricsEl.innerHTML=`<div class="hint" style="margin:0">Search and select a stock above to load its live price from the Stock List.</div>`;
+    }
+  }
+  if(ngxcMode==='round') renderNGXCalcRound(); else renderNGXCalcSingle();
+}
+
+function renderNGXCalcSingle(){
+  const price=ngxcVal('ngxc-price'), units=Math.floor(ngxcVal('ngxc-units')), gross=price*units;
+  const isSell=ngxcMode==='sell';
+  const gdEl=document.getElementById('ngxc-gross-disp'); if(gdEl) gdEl.value=fmt(gross);
+  const f=ngxcCalcFees(gross,isSell);
+  const costPrice=ngxcVal('ngxc-costprice'), cgtRate=ngxcVal('ngxc-cgtrate')/100;
+  const costBasis=costPrice*units;
+  const rawGain=gross-f.total-costBasis;
+  const cgt=(isSell&&rawGain>0)?rawGain*cgtRate:0;
+  const totalCost=gross+f.total;
+  const netPreCGT=gross-f.total;
+  const netAfterCGT=netPreCGT-cgt;
+  const breakeven=units>0?totalCost/units:0;
+
+  const metricsEl=document.getElementById('ngxc-summary-metrics');
+  if(metricsEl){
+    metricsEl.innerHTML=`
+      <div class="metric metric-c1"><div class="metric-label">${isSell?'Gross sell value':'Gross buy value'}</div><div class="metric-val">${fmt(gross)}</div><div class="metric-sub">${units.toLocaleString()} units × ${fmt(price)}</div></div>
+      <div class="metric metric-c6"><div class="metric-label">Total fees${isSell?' + CGT':''}</div><div class="metric-val" style="color:var(--amber)">${fmt(isSell?f.total+cgt:f.total)}</div><div class="metric-sub">${(gross>0?(f.total/gross*100):0).toFixed(3)}% of gross</div></div>
+      <div class="metric metric-c3"><div class="metric-label">${isSell?'Net proceeds (pre-CGT)':'Total cost to pay'}</div><div class="metric-val" style="color:${isSell?'var(--red)':'var(--green)'}">${fmt(isSell?netPreCGT:totalCost)}</div><div class="metric-sub">${isSell?(costPrice>0?'Cost basis: '+fmt(costBasis):'Enter cost price for P&L'):'Break-even: '+fmt(breakeven)+'/share'}</div></div>`;
+  }
+
+  const pnlEl=document.getElementById('ngxc-pnl-card');
+  if(pnlEl){
+    if(isSell && costPrice>0 && units>0){
+      const pnl=netAfterCGT-costBasis;
+      const pnlPct=costBasis>0?pnl/costBasis*100:0;
+      const sg=pnl>=0?'+':'';
+      pnlEl.innerHTML=`<div class="metrics" style="margin-top:0">
+        <div class="metric ${pnl>=0?'metric-c3':'metric-c6'}"><div class="metric-label">Profit / Loss</div><div class="metric-val" style="color:${pnl>=0?'var(--green)':'var(--red)'}">${sg}${fmt(Math.abs(pnl))}</div><div class="metric-sub">${sg}${pnlPct.toFixed(2)}% return on cost</div></div>
+        <div class="metric metric-c6"><div class="metric-label">Capital Gains Tax</div><div class="metric-val">${cgt>0?fmt(cgt):'₦0.00'}</div><div class="metric-sub">${cgt>0?ngxcVal('ngxc-cgtrate')+'% × '+fmt(rawGain)+' gain':'No gain — CGT is ₦0'}</div></div>
+        <div class="metric metric-c3"><div class="metric-label">Net after-tax proceeds</div><div class="metric-val" style="color:var(--green)">${fmt(netAfterCGT)}</div></div>
+      </div>`;
+    } else if(isSell){
+      pnlEl.innerHTML=`<div class="hint">Enter the original cost price above to see profit/loss and CGT.</div>`;
+    } else {
+      pnlEl.innerHTML='';
+    }
+  }
+
+  const bdEl=document.getElementById('ngxc-breakdown-table');
+  if(bdEl){
+    let h='<div class="tbl-wrap"><table><thead><tr><th>Item</th><th class="num">Amount (₦)</th></tr></thead><tbody>';
+    h+=`<tr><td>${isSell?'Gross sell value':'Gross buy value'}</td><td class="num">${fmt(gross)}</td></tr>`;
+    h+=`<tr><td>Brokerage commission (${ngxcVal('ngxc-f-brk')}%)</td><td class="num">${fmt(f.brk)}</td></tr>`;
+    h+=`<tr><td>VAT on commission (${ngxcVal('ngxc-f-vat')}%)</td><td class="num">${fmt(f.vat)}</td></tr>`;
+    h+=`<tr><td>SEC levy (${ngxcVal('ngxc-f-sec')}%)</td><td class="num">${fmt(f.sec)}</td></tr>`;
+    h+=`<tr><td>NGX transaction levy (${ngxcVal('ngxc-f-ngx')}%)</td><td class="num">${fmt(f.ngx)}</td></tr>`;
+    h+=`<tr><td>CSCS settlement fee (${ngxcVal('ngxc-f-cscs')}%)</td><td class="num">${fmt(f.cscs)}</td></tr>`;
+    h+=`<tr><td>Stamp duty${isSell?' (N/A — buy only)':' ('+ngxcVal('ngxc-f-st')+'%)'}</td><td class="num">${isSell?'—':fmt(f.st)}</td></tr>`;
+    if(isSell) h+=`<tr><td>Capital gains tax</td><td class="num">${cgt>0?fmt(cgt):'₦0.00 (no gain)'}</td></tr>`;
+    h+=`<tr class="tfoot"><td>${isSell?'NET PROCEEDS (after CGT)':'TOTAL COST TO PAY'}</td><td class="num">${fmt(isSell?netAfterCGT:totalCost)}</td></tr>`;
+    bdEl.innerHTML=h+'</tbody></table></div>';
+  }
+  const noteEl=document.getElementById('ngxc-bd-note');
+  if(noteEl) noteEl.textContent=isSell
+    ? 'Net proceeds = gross sell value − all sell-side fees − CGT. Enter your original cost price above to calculate profit/loss.'
+    : 'Break-even price = total cost ÷ units. The stock must trade above this to be in profit after buy-side fees.';
+}
+
+function renderNGXCalcRound(){
+  const buyPrice=ngxcVal('ngxc-rt-buy'), sellPrice=ngxcVal('ngxc-rt-sell'), units=Math.floor(ngxcVal('ngxc-rt-units'));
+  const buyGross=buyPrice*units, sellGross=sellPrice*units;
+  const bf=ngxcCalcFees(buyGross,false), sf=ngxcCalcFees(sellGross,true);
+  const totalCost=buyGross+bf.total;
+  const sellNet=sellGross-sf.total;
+  const gain=sellNet-totalCost;
+  const cgtRate=ngxcVal('ngxc-cgtrate')/100 || 0.10;
+  const cgt=gain>0?gain*cgtRate:0;
+  const netAfterCGT=sellNet-cgt;
+  const pnl=netAfterCGT-totalCost;
+  const roe=totalCost>0?pnl/totalCost*100:0;
+  const sRate=(ngxcVal('ngxc-f-brk')/100)*(1+ngxcVal('ngxc-f-vat')/100)+(ngxcVal('ngxc-f-sec')/100)+(ngxcVal('ngxc-f-ngx')/100)+(ngxcVal('ngxc-f-cscs')/100);
+  const bePrice=units>0&&(1-sRate)>0?totalCost/units/(1-sRate):0;
+  const totalFees=bf.total+sf.total+cgt;
+
+  const el=document.getElementById('ngxc-round-table');
+  if(!el) return;
+  el.innerHTML=`
+    <div class="grid2">
+      <div class="tbl-wrap"><table><thead><tr><th colspan="2" style="color:var(--green)">▲ Buy Leg</th></tr></thead><tbody>
+        <tr><td>Buy price</td><td class="num">${fmt(buyPrice)}</td></tr>
+        <tr><td>Gross buy value</td><td class="num">${fmt(buyGross)}</td></tr>
+        <tr><td>Brokerage + VAT</td><td class="num">${fmt(bf.brk+bf.vat)}</td></tr>
+        <tr><td>SEC + NGX + CSCS</td><td class="num">${fmt(bf.sec+bf.ngx+bf.cscs)}</td></tr>
+        <tr><td>Stamp duty</td><td class="num">${fmt(bf.st)}</td></tr>
+        <tr class="tfoot"><td>Total cost to enter</td><td class="num">${fmt(totalCost)}</td></tr>
+      </tbody></table></div>
+      <div class="tbl-wrap"><table><thead><tr><th colspan="2" style="color:var(--red)">▼ Sell Leg</th></tr></thead><tbody>
+        <tr><td>Sell price</td><td class="num">${fmt(sellPrice)}</td></tr>
+        <tr><td>Gross sell value</td><td class="num">${fmt(sellGross)}</td></tr>
+        <tr><td>Brokerage + VAT</td><td class="num">${fmt(sf.brk+sf.vat)}</td></tr>
+        <tr><td>SEC + NGX + CSCS</td><td class="num">${fmt(sf.sec+sf.ngx+sf.cscs)}</td></tr>
+        <tr><td>CGT on gain</td><td class="num">${cgt>0?fmt(cgt):'₦0.00'}</td></tr>
+        <tr class="tfoot"><td>Net proceeds after all</td><td class="num">${fmt(netAfterCGT)}</td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="metrics" style="margin-top:12px">
+      <div class="metric metric-c6"><div class="metric-label">Total fees paid (both legs)</div><div class="metric-val" style="color:var(--amber)">${fmt(totalFees)}</div></div>
+      <div class="metric ${pnl>=0?'metric-c3':'metric-c6'}"><div class="metric-label">Net P&amp;L after CGT</div><div class="metric-val" style="color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}${fmt(Math.abs(pnl))}</div><div class="metric-sub">${roe>=0?'+':''}${roe.toFixed(2)}% return on capital</div></div>
+      <div class="metric metric-c2"><div class="metric-label">Min. sell price to break even</div><div class="metric-val">${fmt(bePrice)}<span style="font-size:11px">/share</span></div></div>
+    </div>`;
+}
+
 function populateBrokerDropdown(){
   const sel=document.getElementById('pur-broker');
   if(!sel)return;
@@ -6402,12 +7504,36 @@ function renderAllocation(){
 /* ═══════════════════════════════════════════
    IMPORT / EXPORT
 ═══════════════════════════════════════════ */
+/* Saves a timestamped copy of the exported data to Firebase under this sync code,
+   separate from the live sync document, so exports double as cloud backups. */
+async function backupToCloud(payload){
+  if(!syncDocId) return false;
+  try{
+    await ensureSignedIn();
+    const ts=Date.now();
+    await fbDb.collection('syncData').doc(syncDocId).collection('backups').doc(String(ts)).set({...payload, backedUpAt:ts});
+    return true;
+  }catch(e){
+    console.warn('Cloud backup failed:', e.message);
+    return false;
+  }
+}
+
 function exportData(){
-  const data={holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,netWorthMilestones,cashflowTxns,budgets,cfCategories:CF_CATEGORIES,exportedAt:new Date().toISOString()};
+  const data={holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,netWorthMilestones,cashflowTxns,budgets,cfCategories:CF_CATEGORIES,chartOfAccounts,journalEntries,corporateActions,exportedAt:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='investment_tracker_backup_'+today+'.json'; a.click();
   setStatus('Exported — '+a.download);
+  if(syncDocId){
+    if(navigator.onLine){
+      backupToCloud(data).then(ok=>{
+        renderSyncStatus(ok?'✓ Backup file also saved to cloud — '+new Date().toLocaleTimeString():'✕ Cloud backup failed — local file was still saved.', !ok);
+      });
+    } else {
+      renderSyncStatus("Offline — local file saved; cloud backup will happen once you're back online.", true);
+    }
+  }
 }
 function toggleImport(){
   const el=document.getElementById('import-area');
@@ -6447,9 +7573,13 @@ function importData(){
         const usdEntry=currencies.find(c=>c.code==='USD');
         if(usdEntry) usdEntry.rateToNGN=d.fxRate.usdToNgn;
       }
-      mergeSeedFunds(); mergeSeedBrokers(); mergeSeedPortfolios();
+      chartOfAccounts=(d.chartOfAccounts&&d.chartOfAccounts.length)?d.chartOfAccounts:[];
+      journalEntries=d.journalEntries||[];
+      corporateActions=d.corporateActions||[];
+      mergeSeedFunds(); mergeSeedBrokers(); mergeSeedPortfolios(); mergeSeedCOA();
       migrateDividendIds();
       syncHoldingsFromPurchases();
+      rebuildAutoJournal();
       save(); renderAll();
       document.getElementById('import-msg').textContent='Import successful.';
       document.getElementById('import-msg').style.color='var(--green)';
@@ -6466,6 +7596,7 @@ function clearAll(){
   holdings=[];purchases=[];dividends=[];
   mfBalances=JSON.parse(JSON.stringify(defaultMFBalances));
   mfTxns=[];projections=[];
+  chartOfAccounts=[];journalEntries=[];corporateActions=[];
   renderAll(); setStatus('All data cleared');
 }
 
@@ -6475,6 +7606,9 @@ document.getElementById('mf-date').value=today;
 document.getElementById('fund-date').value=today;
 document.getElementById('liab-start').value=today;
 document.getElementById('cf-date').value=today;
+document.getElementById('je-date').value=today;
+document.getElementById('ca-date').value=today;
+renderJELinesForm();
 populateCFCategories();
 load();
 // Restore cloud sync connection if a code was previously set on this device
@@ -6483,7 +7617,13 @@ if(syncCode){
   sha256Hex(syncCode).then(hash=>{
     syncDocId=hash;
     renderSyncPanel();
-    setTimeout(()=>{ if(navigator.onLine) syncNow(); }, 4500);
+    setTimeout(()=>{
+      if(navigator.onLine){
+        // If changes were made offline in a previous session, push them now; otherwise do a normal two-way sync.
+        if(localStorage.getItem('pit_pending_sync')==='true') pushToCloud();
+        else syncNow();
+      }
+    }, 4500);
   });
 }
 // Auto-refresh prices on open (non-blocking)
