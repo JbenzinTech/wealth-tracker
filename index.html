@@ -202,7 +202,7 @@ button:hover{background:var(--bg)}
     <span></span><span></span><span></span>
   </button>
   <div class="hero-title">Investment Portfolio Tracker</div>
-  <div class="hero-sub">v3.1 &nbsp;·&nbsp; Nigerian Exchange Group</div>
+  <div class="hero-sub">v3.2 &nbsp;·&nbsp; Nigerian Exchange Group</div>
 </div>
 
 <!-- Mobile drawer overlay -->
@@ -2126,7 +2126,11 @@ async function pullFromCloud(){
   try{
     await ensureSignedIn();
     const doc=await fbDb.collection('syncData').doc(syncDocId).get();
-    if(!doc.exists){ renderSyncStatus('No cloud data yet for this code — push local data to start.'); return; }
+    if(!doc.exists){
+      renderSyncStatus("No cloud data yet for this code — uploading this device's data to start.");
+      await pushToCloud();
+      return;
+    }
     const d=doc.data();
     holdings=d.holdings||[]; purchases=d.purchases||[]; dividends=d.dividends||[];
     mfBalances=d.mfBalances||{}; mfTxns=d.mfTxns||[]; projections=d.projections||[];
@@ -2142,7 +2146,7 @@ async function pullFromCloud(){
     if(d.cfCategories) CF_CATEGORIES=d.cfCategories;
     migrateDividendIds();
     suppressAutoPush=true;
-    save(); // persists pulled data to localStorage (auto-push suppressed for this save)
+    save(true); // persists pulled data to localStorage (silent — version is set explicitly below from the cloud timestamp)
     suppressAutoPush=false;
     localStorage.setItem('pit_local_version', String(d.updatedAt||Date.now()));
     localStorage.setItem('pit_sync_initialized','true');
@@ -2158,28 +2162,18 @@ async function syncNow(){
   if(!syncDocId){ renderSyncStatus('Set a sync code first.', true); return; }
   try{
     await ensureSignedIn();
-    const doc=await fbDb.collection('syncData').doc(syncDocId).get();
-    const initialized=localStorage.getItem('pit_sync_initialized')==='true';
-
-    if(doc.exists){
-      if(!initialized){
-        // First time this device syncs this code — always adopt the cloud copy rather
-        // than comparing timestamps. A fresh device's default/sample data can look
-        // "newer" than real cloud data purely because it was just saved locally
-        // (e.g. an auto price refresh right after page load), which would otherwise
-        // wrongly win a naive timestamp comparison.
-        await pullFromCloud();
-        localStorage.setItem('pit_sync_initialized','true');
-        return;
-      }
-      const cloudVersion=doc.data().updatedAt||0;
-      const localVersion=parseInt(localStorage.getItem('pit_local_version')||'0');
-      if(cloudVersion>localVersion) await pullFromCloud();
-      else await pushToCloud();
-    } else {
+    if(localStorage.getItem('pit_pending_sync')==='true'){
+      // This device has local edits (made offline, or otherwise not yet confirmed pushed)
+      // — push those up rather than risking overwriting them with an older cloud copy.
       await pushToCloud();
-      localStorage.setItem('pit_sync_initialized','true');
+      return;
     }
+    // No unsynced local edits — the cloud copy is authoritative. This deliberately avoids
+    // comparing save timestamps: merely opening the app (or a background price refresh)
+    // touches this device's local data and can make it look "newer" than it really is,
+    // which previously caused a device to push its own stale cached data over fresher
+    // data from another device instead of pulling it.
+    await pullFromCloud();
   }catch(e){
     renderSyncStatus('✕ Sync failed — '+e.message, true);
     console.warn('Sync failed:', e.message);
@@ -2212,9 +2206,16 @@ window.addEventListener('offline', ()=>{
   if(syncDocId) renderSyncStatus('Offline — saved locally, will sync to cloud automatically once back online.');
 });
 
-function save(){
+function save(silent){
   try{
     localStorage.setItem(LS,JSON.stringify({holdings,purchases,dividends,mfBalances,mfTxns,projections,allocTargets,brokers,portfolios,funds,formerHoldings,priceAlerts,usAssets,cryptoAssets,liabilities,cashAccounts,currencies,realEstate,retirementAccounts,netWorthHistory,netWorthMilestones,cashflowTxns,budgets,cfCategories:CF_CATEGORIES,chartOfAccounts,journalEntries,corporateActions}));
+    if(silent){
+      // Housekeeping persist (e.g. merging seed data while loading) — must NOT bump the
+      // sync version. If it did, simply opening the app would make this device's cached
+      // copy look "newer" than the real cloud data and wrongly overwrite it on next sync.
+      setStatus('Loaded — '+new Date().toLocaleTimeString());
+      return;
+    }
     localStorage.setItem('pit_local_version', String(Date.now()));
     setStatus('Saved — '+new Date().toLocaleTimeString());
     scheduleAutoPush();
@@ -2269,7 +2270,7 @@ function load(){
       syncProjectionsPlanFromHoldings(); // backward-compat: reconcile any stale projection portfolios
       ensureRefundCategory();
       rebuildAutoJournal();
-      save(); // persist merged seeds back to localStorage
+      save(true); // persist merged seeds back to localStorage — silent: must not bump sync version
       setStatus('Loaded — '+purchases.length+' purchases');
     } else {
       mfBalances=JSON.parse(JSON.stringify(defaultMFBalances));
@@ -7617,13 +7618,25 @@ if(syncCode){
   sha256Hex(syncCode).then(hash=>{
     syncDocId=hash;
     renderSyncPanel();
+    if(!navigator.onLine){
+      // Offline on load — the localStorage data already rendered by load() is the only
+      // source available. It will refresh from the cloud automatically once reconnected.
+      renderSyncStatus('Offline — showing locally cached data. Will load the latest from the cloud once back online.', true);
+      return;
+    }
     setTimeout(()=>{
-      if(navigator.onLine){
-        // If changes were made offline in a previous session, push them now; otherwise do a normal two-way sync.
-        if(localStorage.getItem('pit_pending_sync')==='true') pushToCloud();
-        else syncNow();
+      if(localStorage.getItem('pit_pending_sync')==='true'){
+        // Unsynced edits from a previous offline session on this device — push those up first.
+        pushToCloud();
+      } else {
+        // Online with no unsynced local edits — the cloud copy is authoritative. Always
+        // fetch it fresh on load rather than trusting whatever happens to be cached in
+        // this browser, so opening the app on a different device always shows current
+        // data instead of a stale local snapshot.
+        renderSyncStatus('Loading latest data from cloud…');
+        pullFromCloud();
       }
-    }, 4500);
+    }, 300);
   });
 }
 // Auto-refresh prices on open (non-blocking)
